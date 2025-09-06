@@ -15,7 +15,7 @@ const UserAssetSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-UserAssetSchema.index({ user: 1, coin: 1 }, { unique: true });
+UserAssetSchema.index({ user: 1, coin: 1, network: 1 }, { unique: true });
 
 const UserAsset = mongoose.models.UserAsset || mongoose.model("UserAsset", UserAssetSchema);
 export default UserAsset;
