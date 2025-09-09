@@ -91,6 +91,23 @@ export default function Footer() {
               </li>
             </ul>
           </div>
+
+          {/* Website Certification */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4 text-white">Certification</h3>
+            <ul className="space-y-2 text-sm text-gray-400">
+              <li>
+                <Link
+                  href="/certification"
+                  className="hover:text-white transition underline"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  View Certification Validity
+                </Link>
+              </li>
+            </ul>
+          </div>
         </motion.div>
 
         {/* Copyright */}
