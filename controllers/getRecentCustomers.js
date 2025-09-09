@@ -4,7 +4,7 @@ import User from "@/models/User";
 export default async function getRecentCustomers() {
   await connectToDB();
 
-  const users = await User.find({})
+  const users = await User.find({ status: { $ne: "deleted" } })
     .sort({ createdAt: -1 })
     .limit(3)
     .select("firstName lastName email createdAt role");

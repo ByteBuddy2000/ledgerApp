@@ -9,7 +9,7 @@ export async function getAllcustomer() {
   await connectToDB();
 
   // Populate wallets and assets
-  const users = await User.find()
+  const users = await User.find({ status: { $ne: "deleted" } })
     .populate({
       path: "wallets",
       model: "Wallet",
