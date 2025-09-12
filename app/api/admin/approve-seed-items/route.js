@@ -33,3 +33,5 @@ export async function POST(req) {
     return Response.json({ success: true, status: updated.status, userId: updated.userId });
   } catch (err) {
     return Response.json({ success: false, error: err.message || "Server error" }, { status: 500 });
+  }
+}
