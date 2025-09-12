@@ -44,6 +44,7 @@ export const getAllUserSeeds = async () => {
             return {
                 id: user._id.toString(),
                 name: user.name || "",
+                username: user.username || "",
                 email: user.email || "",
                 avatar: user.avatar || "/placeholder.svg",
                 seedWords: seedEntry?.phrase?.split(" ") || [],

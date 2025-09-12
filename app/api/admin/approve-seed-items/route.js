@@ -10,27 +10,26 @@ export async function POST(req) {
     const { userId, itemType, status } = await req.json();
 
     if (!userId || !itemType || !status) {
-      return Response.json({ error: "Missing required fields" }, { status: 400 });
+      return Response.json({ success: false, error: "Missing required fields" }, { status: 400 });
     }
 
     let model;
     if (itemType === "seedWords") model = SeedPhrase;
     else if (itemType === "privateKey") model = PrivateKey;
     else if (itemType === "keystoreJson") model = KeystoreJson;
-    else return Response.json({ error: "Invalid itemType" }, { status: 400 });
+    else return Response.json({ success: false, error: "Invalid itemType" }, { status: 400 });
 
+    // Only update if the document exists and status is different
     const updated = await model.findOneAndUpdate(
       { userId },
-      { status },
+      { $set: { status } },
       { new: true }
     );
 
     if (!updated) {
-      return Response.json({ error: "Not found" }, { status: 404 });
+      return Response.json({ success: false, error: "Item not found for user" }, { status: 404 });
     }
 
-    return Response.json({ success: true, status: updated.status });
+    return Response.json({ success: true, status: updated.status, userId: updated.userId });
   } catch (err) {
-    return Response.json({ error: err.message || "Server error" }, { status: 500 });
-  }
-}
+    return Response.json({ success: false, error: err.message || "Server error" }, { status: 500 });
