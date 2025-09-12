@@ -2,7 +2,8 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner"; // <-- Sonner toast
+import { toast } from "sonner";
+import { Eye, EyeOff } from "lucide-react"; // <-- Add icons
 
 export default function LoginPage() {
   const router = useRouter();
@@ -10,6 +11,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // <-- State for password visibility
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -33,9 +35,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-950 via-gray-900 to-black"
-    >
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-950 via-gray-900 to-black">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
         <div className="text-center mb-6">
           <img src="/qfslogo.png" alt="Logo" className="mx-auto h-12" />
@@ -54,15 +54,26 @@ export default function LoginPage() {
               required
               aria-label="Email"
             />
-            <input
-              type="password"
-              placeholder="Password"
-              className="w-full px-4 py-2 border rounded bg-blue-100 focus:outline-none"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              aria-label="Password"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Password"
+                className="w-full px-4 py-2 border rounded bg-blue-100 focus:outline-none pr-10"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                aria-label="Password"
+              />
+              <button
+                type="button"
+                tabIndex={-1}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
             <div className="flex items-center text-sm text-gray-600">
               <input
                 type="checkbox"

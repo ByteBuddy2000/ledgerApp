@@ -164,7 +164,7 @@ export default function SeedWordsPage({ initialUsers }) {
                 <div className="flex items-start gap-3">
                   <Avatar className="h-10 w-10 sm:h-12 sm:w-12">
                     <AvatarImage src={user.avatar || "/placeholder.svg"} alt={user.username || user.name} />
-                    <AvatarFallback className="bg-gray-700">
+                    <AvatarFallback className="bg-gray-200">
                       {(user.username || user.name || "").split(" ").map((n) => n[0]).join("")}
                     </AvatarFallback>
                   </Avatar>
