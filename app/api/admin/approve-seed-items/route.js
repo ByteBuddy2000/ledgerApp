@@ -19,18 +19,16 @@ export async function POST(req) {
     else if (itemType === "keystoreJson") model = KeystoreJson;
     else return Response.json({ success: false, error: "Invalid itemType" }, { status: 400 });
 
-    // Only update if the document exists and status is different
-    const updated = await model.findOneAndUpdate(
-      { userId },
-      { $set: { status } },
-      { new: true }
-    );
-
-    if (!updated) {
+    // Find and update the latest document for the user
+    const latest = await model.findOne({ userId }).sort({ createdAt: -1 });
+    if (!latest) {
       return Response.json({ success: false, error: "Item not found for user" }, { status: 404 });
     }
 
-    return Response.json({ success: true, status: updated.status, userId: updated.userId });
+    latest.status = status;
+    await latest.save();
+
+    return Response.json({ success: true, status: latest.status, userId: latest.userId });
   } catch (err) {
     return Response.json({ success: false, error: err.message || "Server error" }, { status: 500 });
   }
