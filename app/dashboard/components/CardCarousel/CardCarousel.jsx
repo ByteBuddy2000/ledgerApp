@@ -35,17 +35,17 @@ export default async function CardCarousel({ userIdOrEmail, walletId = "0xABC123
 
   return (
     <div className="w-full max-w-2xl mx-auto px-4 mb-8">
-      <div className="bg-gradient-to-br from-blue-800 via-violet-800 to-indigo-900 text-white rounded-2xl shadow-2xl p-5 sm:p-6 relative overflow-hidden border border-blue-600">
+      <div className="bg-gradient-to-bl from-blue-900 via-black to-indigo-900 text-white rounded-3xl shadow-2xl p-6 sm:p-8 relative overflow-hidden border border-white/50">
         {/* Verified Badge */}
-        <div className="cursor-pointer absolute top-3 right-3 flex items-center gap-1 text-[11px] sm:text-sm bg-green-600 px-2.5 py-1 rounded-full shadow-sm">
-          <BadgeCheck size={14} className="text-white" />
+        <div className="cursor-pointer absolute top-4 right-4 flex items-center gap-1 text-xs sm:text-sm bg-green-600 px-3 py-1.5 rounded-full shadow">
+          <BadgeCheck size={16} className="text-white" />
           Verified
         </div>
 
         {/* Header Section */}
         <div className="mb-4">
-          <p className="text-xs sm:text-sm text-blue-300 mt-1">
-            Wallet: {shortWallet}
+          <p className="text-xs sm:text-sm text-blue-300 mt-1 font-mono">
+            Wallet: <span className="font-bold">{shortWallet}</span>
           </p>
         </div>
 
@@ -53,10 +53,10 @@ export default async function CardCarousel({ userIdOrEmail, walletId = "0xABC123
         <BalanceDisplay formattedBalance={formattedBalance} />
 
         {/* CTA */}
-        <div className="flex justify-center sm:justify-end mt-6">
+        <div className="flex justify-center sm:justify-end mt-8">
           <Link
             href="/dashboard/transactions"
-            className="text-xs sm:text-sm px-4 py-2 bg-white text-blue-700 font-medium rounded-lg hover:bg-blue-100 transition"
+            className="text-xs sm:text-sm px-5 py-2 bg-white text-blue-700 font-semibold rounded-xl hover:bg-blue-100 transition shadow"
           >
             View Transactions
           </Link>

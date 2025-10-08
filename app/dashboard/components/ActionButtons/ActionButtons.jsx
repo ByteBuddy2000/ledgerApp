@@ -10,6 +10,7 @@ import {
   WalletCards,
   Briefcase,
   ShieldAlert,
+  LineChart,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -21,11 +22,12 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 
-// 🔧 Define action buttons
+// 🔧 Define action buttons (added Stocks)
 const actions = [
   { label: "Deposit", modal: "deposit", icon: <Send size={20} /> },
   { label: "Withdrawal", modal: "withdrawal", icon: <ArrowDownToLine size={20} /> },
   { label: "Buy", modal: null, icon: <WalletCards size={20} /> },
+  { label: "Stocks", modal: null, icon: <LineChart size={20} /> },
   { label: "401k", modal: null, icon: <Briefcase size={20} /> },
   { label: "FBI", modal: null, icon: <ShieldAlert size={20} /> },
 ];
@@ -40,7 +42,7 @@ function ModalTemplate({ title, onClose, children }) {
     <motion.div className="fixed inset-0 z-[100] flex items-center justify-center" initial="hidden" animate="visible" exit="hidden" variants={overlayVariants}>
       <motion.div className="absolute inset-0 bg-black/60 backdrop-blur" onClick={onClose} />
       <motion.div
-        className="relative w-full max-w-md bg-slate-900 rounded-xl text-white p-6 z-10 border border-blue-800 shadow-xl"
+        className="relative w-full max-w-md bg-slate-900 rounded-xl text-white p-6 z-10 border border-white/80 shadow-xl"
         variants={modalVariants}
         transition={{ type: "spring", duration: 0.5 }}
       >
@@ -68,7 +70,7 @@ function DepositModal({ onClose }) {
     dogecoin: "DFFG4fyPghR6njzwKGtFMWk37uiN3GDqh3",
     xrp: "rp5PMThCE9FtANy7ULtN4X43fNf7oXW6mt",
     xlm: "GD33L52SYG7NFBQQYGHBU4JIKSAK2M7AMXWXHT5KUVW6ZA5PN5HKMWNO",
-    bnb: "0xfE09a5D6Cd24f4E6172627011b85866DE3fBf447"
+    bnb: "0xfE09a5D6Cd24f4E6172627011b85866DE3fB447"
   };
 
   const address = walletAddresses[coin];
@@ -297,6 +299,14 @@ const ActionButtons = ({ userId }) => {
             return (
               <Link key={label} href="/dashboard/fbi" className={buttonClass} title="Submit Complaint">
                 <div className="text-red-400">{icon}</div>
+                <span className="text-xs">{label}</span>
+              </Link>
+            );
+          }
+          if (label === "Stocks") {
+            return (
+              <Link key={label} href="/dashboard/stocks" className={buttonClass} title="View Stocks">
+                <div className="text-blue-400">{icon}</div>
                 <span className="text-xs">{label}</span>
               </Link>
             );
