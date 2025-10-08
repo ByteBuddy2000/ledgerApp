@@ -53,7 +53,6 @@ export default function BalanceDisplay({ formattedBalance, assets = [], change24
         </div>
       </div>
       <div className="flex justify-between mt-3 text-xs text-gray-400 px-1">
-        <span>Portfolio Value</span>
         <span>Updated just now</span>
       </div>
     </div>
