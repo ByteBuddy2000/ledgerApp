@@ -94,6 +94,7 @@ const recentActivity = [
     status: "info",
     avatar: "/placeholder.svg?height=32&width=32",
   },
+  
 ];
 
 const kycQueue = [
