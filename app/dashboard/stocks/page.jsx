@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { LineChart, ArrowUpRight, ArrowDownRight, X } from "lucide-react";
+import { toast } from "sonner";
 
 export default function StockPage() {
   const [stocks, setStocks] = useState([]);
@@ -28,13 +29,29 @@ export default function StockPage() {
 
   const handlePay = async () => {
     setPaying(true);
-    // Here you would verify payment to the XRP address before allowing purchase
-    // For demo, just close modal after 2 seconds
-    setTimeout(() => {
-      setPaying(false);
-      setModalStock(null);
-      alert(`Purchased ${sharesInput} shares of ${modalStock.symbol} after XRP payment`);
-    }, 2000);
+
+    // Call the buy API to save the purchase
+    const res = await fetch("/api/stocks/buy", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        symbol: modalStock.symbol,
+        shares: sharesInput,
+        price: modalStock.price,
+      }),
+    });
+    const data = await res.json();
+
+    setPaying(false);
+    setModalStock(null);
+
+    if (data.success) {
+      toast.success(
+        `Purchased ${sharesInput} shares of ${modalStock.symbol} after XRP payment. Please check your transaction history for approval status.`
+      );
+    } else {
+      toast.error(data.error || "Failed to save purchase.");
+    }
   };
 
   return (
@@ -47,6 +64,7 @@ export default function StockPage() {
             Buy and track stocks alongside your crypto assets.
           </p>
         </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {loading
             ? Array.from({ length: 4 }).map((_, i) => (

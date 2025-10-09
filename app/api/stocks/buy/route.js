@@ -21,12 +21,13 @@ export async function POST(req) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
   }
 
-  // Save purchase
+  // Save purchase with pending status
   const stock = await UserStock.create({
     user: user._id,
     symbol,
     shares,
     price,
+    status: "pending", // <-- Add this line
   });
 
   return NextResponse.json({ success: true, stock });
