@@ -35,21 +35,11 @@ export default function BalanceDisplay({ formattedBalance, assets = [], change24
           <h3 className="text-3xl sm:text-4xl font-extrabold text-white tracking-wide mb-1">
             {show ? `$${formattedBalance}` : "••••••••"}
           </h3>
-          <div className={`flex items-center gap-2 ${changeColor} text-sm font-semibold`}>
-            {changeIcon}
-            <span>{change24h > 0 ? "+" : ""}{change24h}%</span>
-            <span className="ml-2 text-xs text-gray-400">24h</span>
-          </div>
+         
         </div>
         <div className="flex flex-col items-center sm:items-end gap-2">
-          <div className="flex items-center gap-2">
-            <Coins className="text-blue-400" size={18} />
-            <span className="text-sm text-white/80 font-medium">{totalCoins} Coins</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs bg-blue-900/60 px-2 py-1 rounded text-blue-300 font-mono">{topAsset}</span>
-            <span className="text-xs text-white/70">{topAssetAmount}</span>
-          </div>
+          
+         
         </div>
       </div>
       <div className="flex justify-between mt-3 text-xs text-gray-400 px-1">
