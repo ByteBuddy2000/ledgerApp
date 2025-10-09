@@ -252,6 +252,14 @@ export default function AdminDashboard({ recentCustomers = [] }) {
                     </div>
                   </Link>
                 )}
+                {true && (
+                  <Link href="/admin/stocks">
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center flex flex-col items-center justify-center hover:bg-white/10 transition text-white cursor-pointer">
+                      <BarChart3 className="w-6 h-6 mb-2" />
+                      <span className="text-sm font-medium">Stocks</span>
+                    </div>
+                  </Link>
+                )}
                 {false && (
                   <Link href="/admin/kyc">
                     <div className="hidden bg-white/5 border border-white/10 rounded-2xl p-4 text-center flex-col items-center justify-center hover:bg-white/10 transition text-white cursor-pointer">
