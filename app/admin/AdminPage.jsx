@@ -179,7 +179,7 @@ export default function AdminDashboard({ recentCustomers = [] }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-black text-white">
+    <div className="min-h-screen bg-gradient-to-bl from-[#350661ff] via-[#000000] to-[#001F3F] text-white">
       <div className="absolute inset-0 opacity-5 pointer-events-none z-0" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 relative z-10">
@@ -224,7 +224,7 @@ export default function AdminDashboard({ recentCustomers = [] }) {
             </div> */}
 
             {/* Quick Actions */}
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-5 shadow-lg backdrop-blur-md">
+            <div className=" bg-gradient-to-bl from-[#350661ff] via-[#000000] to-[#001F3F] border border-white/10 rounded-2xl p-5 shadow-lg backdrop-blur-md">
               <h2 className="text-lg font-semibold mb-3 text-white">Quick Actions</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {/* Show/hide with boolean flags */}
