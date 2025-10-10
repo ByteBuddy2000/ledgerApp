@@ -37,8 +37,15 @@ const TransactionPage = () => {
       }
     }
 
+    async function markAllRead() {
+      try {
+        await fetch("/api/transactions/mark-read", { method: "POST" });
+      } catch (err) {}
+    }
+
     fetchTransactions();
     fetchUserStocks();
+    markAllRead();
   }, []);
 
   return (
