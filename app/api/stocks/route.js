@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
 
 export async function GET() {
-  const symbols = ["AAPL", "TSLA", "GOOGL", "AMZN"];
+  const symbols = [
+    "AAPL", "TSLA", "GOOGL", "AMZN",
+    "QZ-GOLD", "QZ-SILVER", "OZ-PALLADIUM", "OZ-IRIDIUM", "QZ-COPPER"
+  ];
   const apiKey = process.env.FINNHUB_KEY;
   const results = [];
+  
 
   for (const symbol of symbols) {
     const url = `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${apiKey}`;

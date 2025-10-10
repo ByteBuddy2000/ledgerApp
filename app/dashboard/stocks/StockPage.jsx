@@ -213,3 +213,5 @@
 // ABNB	Airbnb Inc
 // U	Unity Software Inc
 
+// Qz Gold Qz Silver Oz Palladium Oz Iridium Qz Copper
+
