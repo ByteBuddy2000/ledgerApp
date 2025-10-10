@@ -2,8 +2,23 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   const symbols = [
-    "AAPL", "TSLA", "GOOGL", "AMZN",
-    "QZ-GOLD", "QZ-SILVER", "OZ-PALLADIUM", "OZ-IRIDIUM", "QZ-COPPER"
+    "AAPL", // Apple
+    "TSLA", // Tesla
+    "GOOGL", // Alphabet (Google)
+    "AMZN", // Amazon
+    "MSFT", // Microsoft
+    "META", // Meta Platforms (Facebook)
+    "NVDA", // Nvidia
+    "WMT", // Walmart
+    "V", // Visa
+    "MA", // Mastercard
+    "BAC", // Bank of America
+    "JPM", // JPMorgan Chase
+    "DIS", // Disney
+    "KO", // Coca-Cola
+    "PEP", // PepsiCo
+    "MCD", // McDonald's
+    "SBUX" // Starbucks
   ];
   const apiKey = process.env.FINNHUB_KEY;
   const results = [];
