@@ -24,18 +24,21 @@ const TransactionPage = () => {
       }
     }
 
-    async function fetchStocks() {
+    async function fetchUserStocks() {
       try {
-        const res = await fetch("/api/stocks");
+        // Fetch all user stock transactions (approved, pending, rejected)
+        const res = await fetch("/api/user-stocks?all=true");
         const data = await res.json();
-        setStockTransactions(data.stocks || []);
+        if (data.success && Array.isArray(data.stocks)) {
+          setStockTransactions(data.stocks);
+        }
       } catch (error) {
-        console.error("Error fetching stocks:", error);
+        console.error("Error fetching user stocks:", error);
       }
     }
 
     fetchTransactions();
-    fetchStocks();
+    fetchUserStocks();
   }, []);
 
   return (

@@ -1,5 +1,6 @@
 "use client";
 
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { LineChart, ArrowUpRight, ArrowDownRight, X } from "lucide-react";
@@ -11,14 +12,30 @@ export default function StockPage() {
   const [modalStock, setModalStock] = useState(null);
   const [sharesInput, setSharesInput] = useState(1);
   const [paying, setPaying] = useState(false);
+  const [ownedStocks, setOwnedStocks] = useState({}); // { symbol: shares }
+
 
   useEffect(() => {
     setLoading(true);
+    // Fetch all stocks
     fetch("/api/stocks")
       .then((res) => res.json())
       .then((data) => {
         setStocks(data.stocks);
         setLoading(false);
+      });
+    // Fetch user's approved stocks
+    fetch("/api/user-stocks?approved=true")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.stocks)) {
+          // Aggregate shares by symbol
+          const owned = {};
+          data.stocks.forEach(s => {
+            owned[s.symbol] = (owned[s.symbol] || 0) + s.shares;
+          });
+          setOwnedStocks(owned);
+        }
       });
   }, []);
 
@@ -97,7 +114,7 @@ export default function StockPage() {
                         <h4 className="text-lg font-semibold flex items-center gap-2">
                           {stock.symbol}
                         </h4>
-                        <p className="text-xs text-blue-300">{stock.name}</p>
+                        <p className="text-xs text-blue-300">{stock.name}</p> 
                       </div>
                     </CardHeader>
                     <CardContent className="p-0 mt-2">
@@ -112,7 +129,7 @@ export default function StockPage() {
                       </div>
                       <div className="flex items-center justify-between mt-2">
                         <span className="text-xs text-white/70">
-                          Owned: <span className="font-bold">-</span> shares
+                          Owned: <span className="font-bold">{ownedStocks[stock.symbol] ? ownedStocks[stock.symbol] : '-'}</span> shares
                         </span>
                         <button
                           className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-1 rounded transition text-xs"
