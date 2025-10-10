@@ -132,3 +132,84 @@
 //     </div>
 //   );
 // }
+
+// list of shares
+// 🧠 Technology
+// Symbol	Company Name
+// MSFT	Microsoft Corporation
+// NVDA	NVIDIA Corporation
+// META	Meta Platforms Inc (Facebook)
+// AMD	Advanced Micro Devices Inc
+// INTC	Intel Corporation
+// ORCL	Oracle Corporation
+// IBM	International Business Machines Corp
+// CRM	Salesforce Inc
+
+// 💳 Finance & Banking
+// Symbol	Company Name
+// JPM	JPMorgan Chase & Co
+// BAC	Bank of America Corp
+// WFC	Wells Fargo & Co
+// GS	Goldman Sachs Group Inc
+// C	Citigroup Inc
+// MS	Morgan Stanley
+// PYPL	PayPal Holdings Inc
+// V	Visa Inc
+// MA	Mastercard Incorporated
+
+
+// 🛒 Consumer & Retail
+// Symbol	Company Name
+// WMT	Walmart Inc
+// COST	Costco Wholesale Corp
+// TGT	Target Corp
+// NKE	Nike Inc
+// HD	Home Depot Inc
+// SBUX	Starbucks Corp
+// MCD	McDonald’s Corp
+// KO	Coca-Cola Co
+// PEP	PepsiCo Inc
+
+// ⚡ Energy & Utilities
+// Symbol	Company Name
+// XOM	Exxon Mobil Corp
+// CVX	Chevron Corp
+// NEE	NextEra Energy Inc
+// BP	BP plc
+// SHEL	Shell plc
+// COP	ConocoPhillips
+
+// 🚗 Automotive & Transport
+// Symbol	Company Name
+// F	Ford Motor Co
+// GM	General Motors Co
+// RIVN	Rivian Automotive Inc
+// UBER	Uber Technologies Inc
+// LYFT	Lyft Inc
+
+// 💊 Healthcare & Pharma
+// Symbol	Company Name
+// JNJ	Johnson & Johnson
+// PFE	Pfizer Inc
+// MRK	Merck & Co Inc
+// ABBV	AbbVie Inc
+// UNH	UnitedHealth Group Inc
+// TMO	Thermo Fisher Scientific Inc
+
+// 🎬 Entertainment & Media
+// Symbol	Company Name
+// DIS	The Walt Disney Company
+// NFLX	Netflix Inc
+// WBD	Warner Bros. Discovery Inc
+// SONY	Sony Group Corp
+// RBLX	Roblox Corporation
+
+// ☁️ Other Growth & Innovation
+// Symbol	Company Name
+// SNOW	Snowflake Inc
+// SHOP	Shopify Inc
+// SQ	Block Inc (formerly Square)
+// PLTR	Palantir Technologies Inc
+// ABNB	Airbnb Inc
+// U	Unity Software Inc
+
