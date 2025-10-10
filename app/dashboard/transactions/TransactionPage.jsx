@@ -56,27 +56,27 @@ const TransactionPage = () => {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="received" className="w-full mx-auto">
-              <TabsList className="mx-auto mb-4 flex gap-2 bg-transparent p-0">
+              <TabsList className="mx-auto mb-4 flex gap-2 bg-gray-900/80 p-2 rounded-xl shadow-lg border border-gray-700">
                 <TabsTrigger
                   value="received"
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium data-[state=active]:text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-sky-600 data-[state=active]:to-blue-600 transition"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-gray-200 data-[state=active]:text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-600 transition border border-transparent data-[state=active]:border-green-500"
                 >
                   <ArrowDownLeft className="w-4 h-4" />
-                  Received
+                  <span>Received</span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="sent"
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium data-[state=active]:text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-yellow-500 data-[state=active]:to-amber-600 transition"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-gray-200 data-[state=active]:text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500 data-[state=active]:to-rose-600 transition border border-transparent data-[state=active]:border-red-500"
                 >
                   <ArrowUpRight className="w-4 h-4" />
-                  Sent
+                  <span>Sent</span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="stocks"
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium data-[state=active]:text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-blue-500 transition"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-gray-200 data-[state=active]:text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-600 transition border border-transparent data-[state=active]:border-blue-500"
                 >
                   <LineChart className="w-4 h-4" />
-                  Stocks
+                  <span>Stocks</span>
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="received">
@@ -178,10 +178,14 @@ const TransactionPage = () => {
                             </p>
                           </div>
                           <div className="flex flex-col items-end">
-                            <span className={`text-sm font-semibold uppercase ${stock.status === "pending" ? "text-yellow-400" : "text-green-400"}`}>
+                            <span className={`text-sm font-semibold uppercase
+                              ${stock.status === "pending" ? "text-yellow-400" : ""}
+                              ${stock.status === "approved" ? "text-green-400" : ""}
+                              ${stock.status === "rejected" ? "text-red-500" : ""}
+                            `}>
                               {stock.status}
                             </span>
-                            <span className="mt-1 text-xs text-green-100">
+                            <span className="mt-1 text-xs text-gray-300">
                               Stock Purchase
                             </span>
                           </div>

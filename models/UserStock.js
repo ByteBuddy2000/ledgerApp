@@ -6,7 +6,8 @@ const UserStockSchema = new mongoose.Schema(
     symbol: { type: String, required: true },
     shares: { type: Number, required: true, default: 0 },
     price: { type: Number, required: true },
-    status: { type: String, default: "pending" }, // <-- Add this line
+    status: { type: String, default: "pending" },
+    read: { type: Boolean, default: false }, // unread by default
     createdAt: { type: Date, default: Date.now },
   },
   { timestamps: true }
