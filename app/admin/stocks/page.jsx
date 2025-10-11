@@ -91,7 +91,7 @@ export default function AdminStocksPage() {
             {loading && <div className="text-gray-300">Loading...</div>}
             {error && <div className="text-red-400">Error: {error}</div>}
 
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
               <div className="text-sm text-gray-300">{loading ? 'Loading pending purchases...' : `${stocks.length} pending purchase(s)`}</div>
               <div className="flex items-center gap-2 text-white">
                 <button onClick={refresh} className="flex items-center gap-2 text-sm bg-white/5 border border-white/10 px-3 py-1 rounded hover:bg-white/6">
@@ -105,10 +105,10 @@ export default function AdminStocksPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {stocks.length === 0 && !loading && <div className="text-gray-300 col-span-full">No pending purchases.</div>}
-              {stocks.map((s) => (
-                <Card key={s._id} className="bg-gradient-to-bl from-slate-300/60 to-[#002938] border border-white/6 p-4">
-                  <div className="flex items-start gap-4">
-                    <div className="flex-1">
+                {stocks.map((s) => (
+                <Card key={s._id} className="bg-gradient-to-bl from-slate-300/60 to-[#002938] border border-white/6 p-4 overflow-hidden">
+                  <div className="flex flex-col sm:flex-row items-start gap-4">
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-4">
                         <div>
                           <div className="text-lg font-bold tracking-tight">{s.symbol}</div>
@@ -129,11 +129,11 @@ export default function AdminStocksPage() {
                       </div>
                     </div>
 
-                    <div className="flex flex-col items-end gap-2">
+                    <div className="flex flex-col sm:items-end items-stretch gap-2 w-full sm:w-auto">
                       <button
                         onClick={() => handleAction(s._id, 'approve')}
                         disabled={processingId === s._id}
-                        className={`flex items-center gap-2 px-3 py-2 rounded text-sm font-semibold ${confirmAction.id === s._id && confirmAction.action === 'approve' ? 'bg-green-700 text-white' : 'bg-green-600 text-white hover:bg-green-700'}`}
+                        className={`flex items-center justify-center gap-2 px-3 py-2 rounded text-sm font-semibold w-full sm:w-auto ${confirmAction.id === s._id && confirmAction.action === 'approve' ? 'bg-green-700 text-white' : 'bg-green-600 text-white hover:bg-green-700'}`}
                       >
                         <Check size={14} />
                         {processingId === s._id ? 'Processing...' : (confirmAction.id === s._id && confirmAction.action === 'approve' ? 'Confirm' : 'Approve')}
@@ -142,7 +142,7 @@ export default function AdminStocksPage() {
                       <button
                         onClick={() => handleAction(s._id, 'reject')}
                         disabled={processingId === s._id}
-                        className={`flex items-center gap-2 px-3 py-2 rounded text-sm font-semibold ${confirmAction.id === s._id && confirmAction.action === 'reject' ? 'bg-red-700 text-white' : 'bg-red-600 text-white hover:bg-red-700'}`}
+                        className={`flex items-center justify-center gap-2 px-3 py-2 rounded text-sm font-semibold w-full sm:w-auto ${confirmAction.id === s._id && confirmAction.action === 'reject' ? 'bg-red-700 text-white' : 'bg-red-600 text-white hover:bg-red-700'}`}
                       >
                         <X size={14} />
                         {processingId === s._id ? 'Processing...' : (confirmAction.id === s._id && confirmAction.action === 'reject' ? 'Confirm' : 'Reject')}
