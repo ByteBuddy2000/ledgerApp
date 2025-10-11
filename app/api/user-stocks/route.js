@@ -14,7 +14,8 @@ export async function GET(request) {
   const approved = url.searchParams.get("approved");
   const all = url.searchParams.get("all");
 
-    if (approved === "true" || all === "true") {
+  const search = url.searchParams.get("search");
+  if (approved === "true" || all === "true") {
       // Return stocks for the current user
       const session = await getServerSession(authOptions);
       if (!session?.user?.email) {
@@ -30,8 +31,15 @@ export async function GET(request) {
       const stocks = await UserStock.find(query).lean();
       return NextResponse.json({ success: true, stocks });
     } else {
-      // Return pending user stock purchases (admin view)
-      const stocks = await UserStock.find({ status: "pending" }).populate("user", "username email").lean();
+      // Return pending buy and sell requests for admin view
+      let query = { status: { $in: ["pending", "pending-sell"] } };
+      if (search) {
+        query.$or = [
+          { symbol: { $regex: search, $options: "i" } },
+          { xrpAddress: { $regex: search, $options: "i" } }
+        ];
+      }
+      const stocks = await UserStock.find(query).populate("user", "username email").lean();
       return NextResponse.json({ success: true, stocks });
     }
   } catch (err) {

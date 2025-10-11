@@ -5,8 +5,8 @@ import CardCarousel from "./components/CardCarousel/CardCarousel";
 import AssetSection from "./components/AssestSection/AssetsSection";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
-import { connectToDB } from "@/lib/connectDB";
 import User from "@/models/User";
+import { connectToDB } from "@/lib/connectDB";
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);

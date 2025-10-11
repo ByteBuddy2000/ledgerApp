@@ -13,6 +13,9 @@ export default function StockPage() {
   const [sharesInput, setSharesInput] = useState(1);
   const [paying, setPaying] = useState(false);
   const [ownedStocks, setOwnedStocks] = useState({}); // { symbol: shares }
+  const [sellModalStock, setSellModalStock] = useState(null);
+  const [sellSharesInput, setSellSharesInput] = useState(1);
+  const [selling, setSelling] = useState(false);
 
 
   useEffect(() => {
@@ -71,9 +74,29 @@ export default function StockPage() {
     }
   };
 
+  // Calculate total live stock balance
+  const totalBalance = stocks.reduce((sum, stock) => {
+    const shares = ownedStocks[stock.symbol] || 0;
+    return sum + shares * stock.price;
+  }, 0);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 py-10 px-4">
       <div className="max-w-4xl mx-auto">
+        {/* Modern Balance Card */}
+        <div className="mb-8">
+          <div className="bg-gradient-to-r from-blue-700 via-blue-900 to-slate-900 rounded-2xl shadow-lg p-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-white">
+            <div className="flex items-center gap-3">
+              <LineChart size={32} className="text-blue-300" />
+              <div>
+                <h2 className="text-xl font-bold">Your Stock Balance</h2>
+                <p className="text-sm text-blue-200">Live total value of all owned stocks</p>
+              </div>
+            </div>
+            <div className="text-3xl font-extrabold text-green-400">${totalBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+          </div>
+        </div>
+
         <div className="mb-8 text-center">
           <LineChart className="mx-auto mb-2 text-blue-400" size={40} />
           <h1 className="text-3xl font-bold text-white mb-2">Stocks Marketplace</h1>
@@ -127,16 +150,28 @@ export default function StockPage() {
                           <span>{stock.change > 0 ? "+" : ""}{stock.change.toFixed(2)}%</span>
                         </span>
                       </div>
-                      <div className="flex items-center justify-between mt-2">
+                      <div className="flex items-center justify-between mt-2 gap-2">
                         <span className="text-xs text-white/70">
                           Owned: <span className="font-bold">{ownedStocks[stock.symbol] ? ownedStocks[stock.symbol] : '-'}</span> shares
                         </span>
-                        <button
-                          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-1 rounded transition text-xs"
-                          onClick={() => handleBuyClick(stock)}
-                        >
-                          Buy
-                        </button>
+                        <div className="flex gap-2">
+                          <button
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-1 rounded transition text-xs"
+                            onClick={() => handleBuyClick(stock)}
+                          >
+                            Buy
+                          </button>
+                          <button
+                            className="bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-1 rounded transition text-xs"
+                            disabled={!ownedStocks[stock.symbol]}
+                            onClick={() => {
+                              setSellModalStock(stock);
+                              setSellSharesInput(1);
+                            }}
+                          >
+                            Sell
+                          </button>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -196,6 +231,90 @@ export default function StockPage() {
               onClick={handlePay}
             >
               {paying ? "Processing..." : `Confirm Purchase ($${(modalStock.price * sharesInput).toFixed(2)})`}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Sell Modal */}
+      {sellModalStock && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur">
+          <div className="bg-slate-900 rounded-2xl border border-white/10 shadow-2xl p-6 w-full max-w-md relative">
+            <button
+              className="absolute top-4 right-4 text-gray-400 hover:text-white"
+              onClick={() => setSellModalStock(null)}
+              aria-label="Close"
+            >
+              <X size={24} />
+            </button>
+            <div className="flex items-center gap-3 mb-4">
+              <img
+                src={sellModalStock.logo}
+                alt={sellModalStock.symbol}
+                className="w-10 h-10 object-contain rounded-full border border-white/10 shadow"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = "/stock-placeholder.png";
+                }}
+              />
+              <div>
+                <h4 className="text-lg font-semibold">{sellModalStock.symbol}</h4>
+                <p className="text-xs text-blue-300">{sellModalStock.name}</p>
+              </div>
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm text-white mb-2">Select shares to sell:</label>
+              <input
+                type="number"
+                min={1}
+                max={ownedStocks[sellModalStock.symbol] || 1}
+                value={sellSharesInput}
+                onChange={e => setSellSharesInput(Number(e.target.value))}
+                className="w-24 px-2 py-1 rounded bg-slate-800 border border-white/20 text-xs text-white"
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm text-white mb-2">Withdraw to XRP address:</label>
+              <input
+                type="text"
+                placeholder="Enter your XRP wallet address"
+                value={sellModalStock.xrpAddress || ""}
+                onChange={e => {
+                  setSellModalStock({ ...sellModalStock, xrpAddress: e.target.value });
+                }}
+                className="w-full px-3 py-2 rounded bg-slate-800 border border-white/20 text-xs text-blue-300 font-mono"
+              />
+              <p className="text-xs text-gray-400 mt-2">
+                After withdrawal, click "Confirm Sell".
+              </p>
+            </div>
+            <button
+              className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 rounded transition text-base mt-2"
+              disabled={selling}
+              onClick={async () => {
+                setSelling(true);
+                // Call the sell API to save the withdrawal request
+                const res = await fetch("/api/stocks/sell", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    symbol: sellModalStock.symbol,
+                    shares: sellSharesInput,
+                    price: sellModalStock.price,
+                    xrpAddress: sellModalStock.xrpAddress,
+                  }),
+                });
+                const data = await res.json();
+                setSelling(false);
+                setSellModalStock(null);
+                if (data.success) {
+                  toast.success(`Sell request for ${sellSharesInput} shares of ${sellModalStock.symbol} submitted. Await admin approval.`);
+                } else {
+                  toast.error(data.error || "Failed to submit sell request.");
+                }
+              }}
+            >
+              {selling ? "Processing..." : `Confirm Sell ($${(sellModalStock.price * sellSharesInput).toFixed(2)})`}
             </button>
           </div>
         </div>
