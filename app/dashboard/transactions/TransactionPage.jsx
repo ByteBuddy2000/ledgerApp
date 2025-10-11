@@ -124,7 +124,7 @@ const TransactionPage = () => {
                       className={`font-semibold ${
                         tx.status === "pending"
                           ? "text-yellow-400"
-                          : tx.status === "approved"
+                          : tx.status === "confirmed"
                           ? "text-green-400"
                           : "text-red-500"
                       }`}
@@ -149,7 +149,7 @@ const TransactionPage = () => {
                       className={`font-semibold ${
                         tx.status === "pending"
                           ? "text-yellow-400"
-                          : tx.status === "approved"
+                          : tx.status === "confirmed"
                           ? "text-green-400"
                           : "text-red-500"
                       }`}

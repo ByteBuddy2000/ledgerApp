@@ -20,6 +20,16 @@ export async function GET() {
     "MCD", // McDonald's
     "SBUX" // Starbucks
   ];
+  // add metals/commodities (common FX/commodity tickers)
+  // Gold (XAUUSD), Silver (XAGUSD), Palladium (XPDUSD), Iridium (no standard ticker on Finnhub), Copper (XCUUSD)
+  symbols.push("XAUUSD", "XAGUSD", "XPDUSD", "XCUUSD", "IRIDIUM");
+  const symbolNames = {
+    XAUUSD: "Gold (XAU/USD)",
+    XAGUSD: "Silver (XAG/USD)",
+    XPDUSD: "Palladium (XPD/USD)",
+    XCUUSD: "Copper (XCU/USD)",
+    IRIDIUM: "Iridium"
+  };
   const apiKey = process.env.FINNHUB_KEY;
   const results = [];
   
@@ -36,7 +46,7 @@ export async function GET() {
 
     results.push({
       symbol,
-      name: profile.name || symbol,
+      name: profile.name || symbolNames[symbol] || symbol,
       price: quote.c || 0,
       change: quote.dp || 0,
       logo: profile.logo || "",
