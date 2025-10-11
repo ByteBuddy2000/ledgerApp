@@ -98,24 +98,24 @@ const TransactionPage = () => {
                         key={tx._id}
                         className="relative p-5 rounded-xl border border-sky-600/30 bg-gradient-to-br from-sky-900/60 via-slate-900/60 to-black/70 shadow-lg hover:shadow-sky-400/30 transition-all duration-300"
                       >
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <p className="text-lg font-bold text-sky-200">
-                              +{tx.amount.toLocaleString()} {tx.coin}
-                            </p>
-                            <p className="text-xs text-gray-300 mt-1">
-                              {new Date(tx.createdAt).toLocaleString()}
-                            </p>
+                          <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-3">
+                            <div className="min-w-0">
+                              <p className="text-lg font-bold text-sky-200 truncate">
+                                +{tx.amount.toLocaleString()} {tx.coin}
+                              </p>
+                              <p className="text-xs text-gray-300 mt-1 truncate">
+                                {new Date(tx.createdAt).toLocaleString()}
+                              </p>
+                            </div>
+                            <div className="flex flex-col items-start sm:items-end">
+                              <span className="text-sm font-semibold text-sky-400 uppercase">
+                                {tx.status}
+                              </span>
+                              <span className="mt-1 text-xs text-sky-100">
+                                Deposit
+                              </span>
+                            </div>
                           </div>
-                          <div className="flex flex-col items-end">
-                            <span className="text-sm font-semibold text-sky-400 uppercase">
-                              {tx.status}
-                            </span>
-                            <span className="mt-1 text-xs text-sky-100">
-                              Deposit
-                            </span>
-                          </div>
-                        </div>
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-sky-500 via-blue-400 to-cyan-400 rounded-t-xl animate-pulse opacity-50" />
                       </div>
                     ))}
@@ -135,15 +135,15 @@ const TransactionPage = () => {
                         className="relative p-5 rounded-xl border border-yellow-600/30 bg-gradient-to-br from-yellow-900/60 via-slate-900/60 to-black/70 shadow-lg hover:shadow-yellow-400/30 transition-all duration-300"
                       >
                         <div className="flex justify-between items-center">
-                          <div>
-                            <p className="text-lg font-bold text-yellow-200">
+                          <div className="min-w-0">
+                            <p className="text-lg font-bold text-yellow-200 truncate">
                               -{tx.amount.toLocaleString()} {tx.coin}
                             </p>
-                            <p className="text-xs text-gray-300 mt-1">
+                            <p className="text-xs text-gray-300 mt-1 truncate">
                               {new Date(tx.createdAt).toLocaleString()}
                             </p>
                           </div>
-                          <div className="flex flex-col items-end">
+                          <div className="flex flex-col items-start sm:items-end">
                             <span className="text-sm font-semibold text-yellow-400 uppercase">
                               {tx.status}
                             </span>
@@ -171,20 +171,20 @@ const TransactionPage = () => {
                         className="relative p-5 rounded-xl border border-green-600/30 bg-gradient-to-br from-green-900/60 via-slate-900/60 to-black/70 shadow-lg hover:shadow-green-400/30 transition-all duration-300"
                       >
                         <div className="flex justify-between items-center">
-                          <div>
-                            <p className="text-lg font-bold text-green-200">
+                          <div className="min-w-0">
+                            <p className="text-lg font-bold text-green-200 truncate">
                               {stock.shares} shares of {stock.symbol}
                             </p>
-                            <p className="text-xs text-gray-300 mt-1">
+                            <p className="text-xs text-gray-300 mt-1 truncate">
                               Bought at ${stock.price} each
                             </p>
-                            <p className="text-xs text-gray-400 mt-1">
+                            <p className="text-xs text-gray-400 mt-1 truncate">
                               {stock.createdAt && !isNaN(new Date(stock.createdAt)) 
                                 ? new Date(stock.createdAt).toLocaleString() 
                                 : "Date unavailable"}
                             </p>
                           </div>
-                          <div className="flex flex-col items-end">
+                          <div className="flex flex-col items-start sm:items-end">
                             <span className={`text-sm font-semibold uppercase
                               ${stock.status === "pending" ? "text-yellow-400" : ""}
                               ${stock.status === "approved" ? "text-green-400" : ""}
