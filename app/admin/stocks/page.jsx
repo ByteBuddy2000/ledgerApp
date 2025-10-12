@@ -97,6 +97,9 @@ export default function AdminStocksPage() {
                 <button onClick={refresh} className="flex items-center gap-2 text-sm bg-white/5 border border-white/10 px-3 py-1 rounded hover:bg-white/6">
                   <RefreshCw size={14} /> Refresh
                 </button>
+                <Link href="/admin/stocks/view">
+                  <Button variant="secondary" size="sm">View Users Stocks</Button>
+                </Link>
                 <Link href="/admin">
                   <Button variant="ghost" size="sm">Back</Button>
                 </Link>

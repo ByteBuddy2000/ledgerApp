@@ -219,7 +219,7 @@ export default function StockPage() {
             <div className="mb-4">
               <label className="block text-sm text-white mb-2">Send payment to XRP address:</label>
               <div className="bg-slate-800 text-blue-300 px-3 py-2 rounded font-mono text-xs select-all">
-                rEXAMPLEXRPADDRESS1234567890
+                rp5PMThCE9FtANy7ULtN4X43fNf7oXW6mtmt
               </div>
               <p className="text-xs text-gray-400 mt-2">
                 After payment, click "Confirm Purchase".
