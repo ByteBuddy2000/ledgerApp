@@ -226,8 +226,9 @@ export default function ViewUserStocksPage() {
                     <Button
                       variant="ghost"
                       onClick={() => handleEditUser(user)}
+                      className="text-white"
                     >
-                      <Edit className="mr-1 h-4 w-4 " /> Edit
+                      <Edit className="mr-1 h-4 w-4 text-white" /> Edit
                     </Button>
                   </DialogTrigger>
 
