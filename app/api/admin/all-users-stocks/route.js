@@ -19,8 +19,24 @@ export async function GET(req) {
     userStocksMap[uid].push({ symbol: stock.symbol, shares: stock.shares });
   });
 
-  // List of all possible stock symbols (can be expanded)
-  const allSymbols = ["AAPL", "GOOGL", "MSFT", "TSLA", "AMZN", "NVDA", "META", "NFLX", "XOM", "JPM"];
+  // List of all possible stock symbols (expanded to include commodities)
+  const allSymbols = [
+    "AAPL",
+    "GOOGL",
+    "MSFT",
+    "TSLA",
+    "AMZN",
+    "NVDA",
+    "META",
+    "NFLX",
+    "XOM",
+    "JPM",
+    "XAUUSD", // Gold
+    "XAGUSD", // Silver
+    "XPDUSD", // Palladium
+    "XCUUSD", // Copper
+    "IRIDIUM", // Iridium
+  ];
 
   // Build user list with stocks (fill missing stocks with 0)
   const result = users.map(user => {

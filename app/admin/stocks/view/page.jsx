@@ -81,12 +81,16 @@ export default function ViewUserStocksPage() {
   }, [searchTerm]);
 
   const handleEditUser = (user) => {
+    // Ensure all stocks (including commodities) are present in editingStocks
+    const stocksMap = {};
+    if (Array.isArray(user.stocks)) {
+      user.stocks.forEach(s => { stocksMap[s.symbol] = { ...s }; });
+    }
+    const fullStocks = allSymbols.map(symbol => {
+      return stocksMap[symbol] ? { ...stocksMap[symbol] } : { symbol, shares: 0 };
+    });
     setSelectedUser(user);
-    setEditingStocks(
-      Array.isArray(user.stocks)
-        ? user.stocks.map((s) => ({ ...s }))
-        : []
-    );
+    setEditingStocks(fullStocks);
     setNewStockSymbol("");
     setNewStockShares("");
   };
@@ -107,19 +111,11 @@ export default function ViewUserStocksPage() {
   const addNewStock = () => {
     if (!newStockSymbol || !newStockShares) return;
     setEditingStocks(prev => {
-      const exists = prev.find(s => s.symbol === newStockSymbol);
-      if (exists) {
-        return prev.map(s =>
-          s.symbol === newStockSymbol
-            ? { ...s, shares: Math.max(0, Number.parseFloat(newStockShares) || 0) }
-            : s
-        );
-      } else {
-        return [
-          ...prev,
-          { symbol: newStockSymbol, shares: Math.max(0, Number.parseFloat(newStockShares) || 0) },
-        ];
-      }
+      return prev.map(s =>
+        s.symbol === newStockSymbol
+          ? { ...s, shares: Math.max(0, Number.parseFloat(newStockShares) || 0) }
+          : s
+      );
     });
     setNewStockSymbol("");
     setNewStockShares("");
@@ -137,14 +133,13 @@ export default function ViewUserStocksPage() {
     if (!selectedUser) return;
     setLoading(true);
     try {
-      const stocksToSend = allSymbols.map(symbol => {
-        const found = editingStocks.find(s => s.symbol === symbol);
-        return {
-          symbol,
-          shares: found ? found.shares : 0,
-          price: livePrices[symbol] || 0,
-        };
-      }).filter(s => s.shares > 0);
+      const stocksToSend = editingStocks
+        .map(stock => ({
+          symbol: stock.symbol,
+          shares: stock.shares,
+          price: livePrices[stock.symbol] || 0,
+        }))
+        .filter(s => s.shares > 0);
       const res = await fetch("/api/admin/update-stocks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
