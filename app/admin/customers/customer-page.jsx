@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -46,6 +47,8 @@ export default function CustomersPage() {
   const [kycFilter, setKycFilter] = useState("all")
   const [loadingUserId, setLoadingUserId] = useState(null)
   const [loadingRoleUserId, setLoadingRoleUserId] = useState(null)
+  const [deletingUserId, setDeletingUserId] = useState(null);
+
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -59,6 +62,28 @@ export default function CustomersPage() {
     fetchCustomers()
   }, [])
 
+  // Permanently delete user from DB
+  const handleDeleteUser = async (userId) => {
+    if (!window.confirm("Are you sure you want to permanently delete this user? This cannot be undone.")) return;
+    setDeletingUserId(userId);
+    try {
+      const res = await fetch("/api/admin/delete-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setCustomers((prev) => prev.filter((c) => c.id !== userId));
+        toast.success("User deleted permanently.");
+      } else {
+        toast.error(data.message || "Failed to delete user.");
+      }
+    } catch (err) {
+      toast.error("Server error.");
+    }
+    setDeletingUserId(null);
+  }
   const handleToggle = async (userId) => {
     setLoadingUserId(userId)
     try {
@@ -288,7 +313,7 @@ export default function CustomersPage() {
                           {/* <th className="p-4 font-medium">Wallets</th>
                           <th className="p-4 font-medium">Assets</th> */}
                           <th className="p-4 font-medium">Status Switch</th>
-                          <th className="hidden p-4 font-medium">Actions</th>
+                          <th className="p-4 font-medium">Delete User</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -373,7 +398,7 @@ export default function CustomersPage() {
                               )}
                             </td>
 
-                           
+
                             <td className="p-4">
                               {loadingUserId === customer.id ? (
                                 <Loader2 className="w-5 h-5 animate-spin text-gray-500" />
@@ -386,32 +411,17 @@ export default function CustomersPage() {
                                 />
                               )}
                             </td>
-                            <td className="hidden p-4">
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon">
-                                    <MoreHorizontal className="w-4 h-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem>
-                                    <Eye className="w-4 h-4 mr-2" />
-                                    View Details
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem>
-                                    <Edit className="w-4 h-4 mr-2" />
-                                    Edit Customer
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem>
-                                    <CreditCard className="w-4 h-4 mr-2" />
-                                    Manage Accounts
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem className="text-red-600">
-                                    <Trash2 className="w-4 h-4 mr-2" />
-                                    Suspend Account
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
+                            <td className="p-4">
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                className="flex items-center gap-2"
+                                onClick={() => handleDeleteUser(customer.id)}
+                                disabled={deletingUserId === customer.id}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                                {deletingUserId === customer.id ? "Deleting..." : "Delete User"}
+                              </Button>
                             </td>
                           </tr>
                         ))}
