@@ -39,7 +39,7 @@ const TransactionPage = () => {
     async function markAllRead() {
       try {
         await fetch("/api/transactions/mark-read", { method: "POST" });
-      } catch {}
+      } catch { }
     }
 
     fetchTransactions();
@@ -133,29 +133,34 @@ const TransactionPage = () => {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="received" className="w-full mx-auto">
-              <TabsList className="mx-auto mb-4 flex flex-wrap justify-center gap-2 bg-gray-900/80 p-2 rounded-xl shadow-lg border border-gray-700">
+              <TabsList
+                className="mx-auto mb-4 flex flex-nowrap justify-center gap-2 bg-gray-900/80 p-2 rounded-xl shadow-lg border border-gray-700 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent"
+              >
                 <TabsTrigger
                   value="received"
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg font-medium text-gray-200 data-[state=active]:text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-600 transition"
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg font-medium text-gray-200 data-[state=active]:text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-600 transition flex-shrink-0"
                 >
                   <ArrowDownLeft className="w-4 h-4" />
                   <span>Received</span>
                 </TabsTrigger>
+
                 <TabsTrigger
                   value="sent"
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg font-medium text-gray-200 data-[state=active]:text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500 data-[state=active]:to-rose-600 transition"
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg font-medium text-gray-200 data-[state=active]:text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500 data-[state=active]:to-rose-600 transition flex-shrink-0"
                 >
                   <ArrowUpRight className="w-4 h-4" />
                   <span>Sent</span>
                 </TabsTrigger>
+
                 <TabsTrigger
                   value="stocks"
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg font-medium text-gray-200 data-[state=active]:text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-600 transition"
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg font-medium text-gray-200 data-[state=active]:text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-600 transition flex-shrink-0"
                 >
                   <LineChart className="w-4 h-4" />
                   <span>Stocks</span>
                 </TabsTrigger>
               </TabsList>
+
               {/* Received */}
               <TabsContent value="received">
                 {receivedTransactions.length === 0 ? (
