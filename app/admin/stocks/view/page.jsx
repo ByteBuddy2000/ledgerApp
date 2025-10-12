@@ -32,9 +32,14 @@ export default function ViewUserStocksPage() {
     "NFLX",
     "XOM",
     "JPM",
+    // Commodities
+    "XAUUSD", // Gold
+    "XAGUSD", // Silver
+    "XPDUSD", // Palladium
+    "XCUUSD", // Copper
+    "IRIDIUM", // Iridium
   ];
 
-  // Mock live prices for demo (replace with real API)
   useEffect(() => {
     async function fetchStockPrices() {
       try {
@@ -54,7 +59,6 @@ export default function ViewUserStocksPage() {
     fetchStockPrices();
   }, []);
 
-  // Fetch users and their stocks
   const fetchUsers = async () => {
     setLoading(true);
     try {
@@ -76,7 +80,6 @@ export default function ViewUserStocksPage() {
     fetchUsers();
   }, [searchTerm]);
 
-  // Edit a user's stocks
   const handleEditUser = (user) => {
     setSelectedUser(user);
     setEditingStocks(
@@ -104,7 +107,6 @@ export default function ViewUserStocksPage() {
   const addNewStock = () => {
     if (!newStockSymbol || !newStockShares) return;
     setEditingStocks(prev => {
-      // If stock exists, update shares; else add new
       const exists = prev.find(s => s.symbol === newStockSymbol);
       if (exists) {
         return prev.map(s =>
@@ -135,7 +137,6 @@ export default function ViewUserStocksPage() {
     if (!selectedUser) return;
     setLoading(true);
     try {
-      // Only send stocks with shares > 0, with price
       const stocksToSend = allSymbols.map(symbol => {
         const found = editingStocks.find(s => s.symbol === symbol);
         return {
@@ -169,34 +170,38 @@ export default function ViewUserStocksPage() {
   };
 
   return (
-  <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-black p-6 md:p-10 text-white">
-    <div className="mb-6">
-      <Link href="/admin/stocks">
-        <Button variant="outline" className="bg-gray-800 text-white border-gray-700 hover:bg-gray-700">
-          ← Back to Stocks Admin
-        </Button>
-      </Link>
-    </div>
-      <div className="flex items-center gap-4 mb-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-black p-4 sm:p-6 md:p-10 text-white">
+      {/* Back Button */}
+      <div className="mb-4 sm:mb-6">
+        <Link href="/admin/stocks">
+          <Button variant="outline" className="bg-gray-800 text-white border-gray-700 hover:bg-gray-700 w-full sm:w-auto">
+            ← Back to Stocks Admin
+          </Button>
+        </Link>
+      </div>
+
+      {/* Search Section */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 mb-6 w-full">
         <Input
           type="text"
           placeholder="Search user by name or email..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-sm bg-gray-800 border-gray-700 text-white"
+          className="bg-gray-800 border-gray-700 text-white w-full sm:max-w-sm"
         />
-        <Button onClick={fetchUsers} disabled={loading}>
+        <Button onClick={fetchUsers} disabled={loading} className="w-full sm:w-auto">
           <Search className="mr-2 h-4 w-4" /> Search
         </Button>
       </div>
 
-      {loading && <p className="text-gray-400">Loading users...</p>}
+      {loading && <p className="text-gray-400 text-center sm:text-left">Loading users...</p>}
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {/* User Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
         {users.map((user) => (
-          <Card key={user.id} className="bg-gradient-to-br from-gray-950 via-gray-900 to-black border-gray-800">
+          <Card key={user.id} className="bg-gradient-to-br from-gray-950 via-gray-900 to-black border-gray-800 rounded-xl shadow-md">
             <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <Avatar>
                     <AvatarImage src={user.avatar || "/placeholder.svg"} />
@@ -212,9 +217,9 @@ export default function ViewUserStocksPage() {
                         : "U"}
                     </AvatarFallback>
                   </Avatar>
-                  <div>
-                    <p className="font-medium">{user.name || "Unnamed User"}</p>
-                    <p className="text-sm text-gray-400">{user.email}</p>
+                  <div className="truncate">
+                    <p className="font-medium truncate max-w-[160px] sm:max-w-[200px]">{user.name || "Unnamed User"}</p>
+                    <p className="text-sm text-gray-400 truncate max-w-[180px]">{user.email}</p>
                   </div>
                 </div>
 
@@ -226,64 +231,75 @@ export default function ViewUserStocksPage() {
                     <Button
                       variant="ghost"
                       onClick={() => handleEditUser(user)}
-                      className="text-blue-400 hover:text-blue-500"
+                      className="text-white hover:text-blue-400 w-full sm:w-auto justify-center"
                     >
-                      <Edit className="mr-1 h-4 w-4 text-blue-400 hover:text-blue-500" /> Edit
+                      <Edit className="mr-1 h-4 w-4 text-white" /> Edit
                     </Button>
                   </DialogTrigger>
 
-                  <DialogContent className="max-w-2xl bg-gradient-to-br from-gray-950 via-gray-900 to-black text-white border-gray-800" style={{ maxHeight: '80vh', overflowY: 'auto' }}>
+                  <DialogContent className="max-w-full sm:max-w-2xl bg-gradient-to-br from-gray-950 via-gray-900 to-black text-white border-gray-800 rounded-lg p-4 sm:p-6 overflow-y-auto max-h-[85vh]">
                     <div className="space-y-6">
-                      <h2 className="text-2xl font-semibold">
+                      <h2 className="text-xl sm:text-2xl font-semibold text-center sm:text-left">
                         Edit {user.name || user.email}'s Stocks
                       </h2>
 
-                      {editingStocks.length > 0 && (
-                        <div className="space-y-4">
-                          {editingStocks.map((stock, index) => (
+                      <div className="space-y-4">
+                        {allSymbols.map((symbol, index) => {
+                          const stock = editingStocks.find(s => s.symbol === symbol);
+                          const shares = stock ? stock.shares : 0;
+                          return (
                             <div
-                              key={index}
-                              className="flex items-center justify-between gap-3 bg-gray-800 p-3 rounded"
+                              key={symbol}
+                              className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gray-800 p-3 rounded-lg"
                             >
                               <div className="flex-1">
-                                <p className="text-white font-medium">
-                                  {stock.symbol}
-                                </p>
-                                <p className="text-gray-400 text-sm">
-                                  Shares
-                                </p>
+                                <p className="text-white font-medium">{symbol}</p>
+                                <p className="text-gray-400 text-sm">Shares</p>
                               </div>
                               <input
                                 type="number"
                                 step="any"
-                                value={stock.shares}
-                                onChange={(e) =>
-                                  updateStockShares(index, e.target.value)
-                                }
-                                className="bg-gray-700 border border-gray-600 rounded px-3 py-2 text-base text-white w-24"
+                                value={shares}
+                                onChange={e => {
+                                  const value = Number.parseFloat(e.target.value) || 0;
+                                  setEditingStocks(prev => {
+                                    const exists = prev.find(s => s.symbol === symbol);
+                                    if (exists) {
+                                      return prev.map(s =>
+                                        s.symbol === symbol ? { ...s, shares: value } : s
+                                      );
+                                    } else {
+                                      return [...prev, { symbol, shares: value }];
+                                    }
+                                  });
+                                }}
+                                className="bg-gray-700 border border-gray-600 rounded px-3 py-2 text-base text-white w-full sm:w-24"
                               />
                               <Button
                                 variant="destructive"
                                 size="sm"
-                                onClick={() => removeStock(index)}
+                                onClick={() => {
+                                  setEditingStocks(prev => prev.map(s => s.symbol === symbol ? { ...s, shares: 0 } : s));
+                                }}
+                                className="w-full sm:w-auto"
                               >
                                 Remove
                               </Button>
                             </div>
-                          ))}
-                        </div>
-                      )}
+                          );
+                        })}
+                      </div>
 
                       {/* Add New Stock */}
                       <div>
-                        <h3 className="text-xl font-semibold mb-3">
+                        <h3 className="text-lg sm:text-xl font-semibold mb-3 text-center sm:text-left">
                           Add New Stock
                         </h3>
-                        <div className="flex flex-col md:flex-row gap-4 items-center">
+                        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center">
                           <select
                             value={newStockSymbol}
                             onChange={(e) => setNewStockSymbol(e.target.value)}
-                            className="bg-gray-700 border border-gray-600 rounded px-4 py-2 text-base text-white w-full md:w-auto"
+                            className="bg-gray-700 border border-gray-600 rounded px-4 py-2 text-base text-white w-full sm:w-auto"
                           >
                             <option value="">Select Stock</option>
                             {allSymbols.map((symbol) => (
@@ -297,15 +313,14 @@ export default function ViewUserStocksPage() {
                             type="number"
                             placeholder="Shares"
                             value={newStockShares}
-                            onChange={(e) =>
-                              setNewStockShares(e.target.value)
-                            }
-                            className="bg-gray-700 border border-gray-600 rounded px-4 py-2 text-base text-white w-full md:w-auto"
+                            onChange={(e) => setNewStockShares(e.target.value)}
+                            className="bg-gray-700 border border-gray-600 rounded px-4 py-2 text-base text-white w-full sm:w-auto"
                           />
 
                           <Button
                             onClick={addNewStock}
                             disabled={!newStockSymbol || !newStockShares}
+                            className="w-full sm:w-auto"
                           >
                             + Add Stock
                           </Button>
@@ -313,16 +328,18 @@ export default function ViewUserStocksPage() {
                       </div>
 
                       {/* Actions */}
-                      <div className="flex justify-end gap-4 pt-6">
+                      <div className="flex flex-col sm:flex-row justify-end gap-3 pt-6">
                         <Button
                           variant="destructive"
                           onClick={() => setSelectedUser(null)}
+                          className="w-full sm:w-auto"
                         >
                           Cancel
                         </Button>
                         <Button
                           onClick={handleSaveStocks}
                           disabled={loading}
+                          className="w-full sm:w-auto"
                         >
                           {loading ? "Saving..." : "Save Changes"}
                         </Button>
@@ -333,22 +350,20 @@ export default function ViewUserStocksPage() {
               </div>
             </CardHeader>
 
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center flex-wrap gap-2">
-                  <span className="text-sm text-gray-400">Total Shares</span>
-                  <span className="text-lg font-bold text-green-400">
+            <CardContent className="space-y-3">
+              <div className="flex flex-wrap justify-between items-center gap-2 text-sm sm:text-base">
+                <div className="flex flex-col">
+                  <span className="text-gray-400">Total Shares</span>
+                  <span className="font-bold text-green-400 text-lg sm:text-xl">
                     {Array.isArray(user.stocks)
-                      ? user.stocks.reduce(
-                          (sum, s) => sum + (s.shares || 0),
-                          0
-                        )
+                      ? user.stocks.reduce((sum, s) => sum + (s.shares || 0), 0)
                       : 0}
                   </span>
-                  <span className="text-sm text-gray-400 ml-4">
-                    Total Value
-                  </span>
-                  <span className="text-lg font-bold text-blue-400">
+                </div>
+
+                <div className="flex flex-col text-right">
+                  <span className="text-gray-400">Total Value</span>
+                  <span className="font-bold text-blue-400 text-lg sm:text-xl">
                     $
                     {Array.isArray(user.stocks)
                       ? user.stocks
@@ -362,26 +377,26 @@ export default function ViewUserStocksPage() {
                       : "0"}
                   </span>
                 </div>
+              </div>
 
-                <div>
-                  <p className="text-sm text-gray-400 mb-2">
-                    Stocks (
-                    {Array.isArray(user.stocks) ? user.stocks.length : 0})
-                  </p>
-                  <div className="flex flex-wrap gap-1">
-                    {(Array.isArray(user.stocks) ? user.stocks : []).map(
-                      (stock, idx) => (
-                        <Badge
-                          key={idx}
-                          variant="secondary"
-                          className="bg-gray-700 text-white text-xs"
-                        >
-                          {stock.symbol}:{" "}
-                          {stock.shares?.toLocaleString()} shares
-                        </Badge>
-                      )
-                    )}
-                  </div>
+              <div>
+                <p className="text-sm text-gray-400 mb-2">
+                  Stocks ({allSymbols.length})
+                </p>
+                <div className="flex flex-wrap gap-1">
+                  {allSymbols.map((symbol, idx) => {
+                    const stock = Array.isArray(user.stocks) ? user.stocks.find(s => s.symbol === symbol) : null;
+                    const shares = stock ? stock.shares : 0;
+                    return (
+                      <Badge
+                        key={symbol}
+                        variant="secondary"
+                        className="bg-gray-700 text-white text-xs px-2 py-1"
+                      >
+                        {symbol}: {shares?.toLocaleString()} shares
+                      </Badge>
+                    );
+                  })}
                 </div>
               </div>
             </CardContent>
