@@ -30,6 +30,13 @@ export async function GET() {
     XCUUSD: "Copper (XCU/USD)",
     IRIDIUM: "Iridium"
   };
+  const commodityLogos = {
+    XAUUSD: "/commodities/gold.svg",
+    XAGUSD: "/commodities/silver.svg",
+    XPDUSD: "/commodities/palladium.svg",
+    XCUUSD: "/commodities/copper.svg",
+    IRIDIUM: "/commodities/iridium.svg",
+  };
   const apiKey = process.env.FINNHUB_KEY;
   const results = [];
   
@@ -49,7 +56,7 @@ export async function GET() {
       name: profile.name || symbolNames[symbol] || symbol,
       price: quote.c || 0,
       change: quote.dp || 0,
-      logo: profile.logo || "",
+      logo: profile.logo || commodityLogos[symbol] || "",
     });
   }
 
