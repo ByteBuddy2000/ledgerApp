@@ -1,169 +1,346 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { LineChart, ArrowUpRight, ArrowDownRight, X } from "lucide-react";
 import { toast } from "sonner";
 
-const StockPage = () => {
-  const [allStocks, setAllStocks] = useState([]);
-  const [userStocks, setUserStocks] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState("market");
+export default function StockPage() {
+  const [stocks, setStocks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [modalStock, setModalStock] = useState(null);
+  const [sharesInput, setSharesInput] = useState(1);
+  const [paying, setPaying] = useState(false);
+  const [ownedStocks, setOwnedStocks] = useState({});
+  const [sellModalStock, setSellModalStock] = useState(null);
+  const [sellSharesInput, setSellSharesInput] = useState(1);
+  const [selling, setSelling] = useState(false);
 
-  // ✅ Fetch all available stocks
-  const fetchAllStocks = async () => {
-    try {
-      const res = await fetch("/api/stocks");
-      const data = await res.json();
-      setAllStocks(data || []);
-    } catch (err) {
-      console.error("Error fetching all stocks:", err);
-      toast.error("Failed to load stocks");
-    }
-  };
-
-  // ✅ Fetch user’s holdings (approved)
+  // --- Fetch user's approved stocks ---
   const fetchUserStocks = async () => {
     try {
-      const res = await fetch("/api/user-stocks?approved=true");
+      const res = await fetch("/api/user-stocks?approved=true", { cache: "no-store" });
       const data = await res.json();
-      setUserStocks(data || []);
+      if (data.success && Array.isArray(data.stocks)) {
+        const owned = {};
+        data.stocks.forEach((s) => {
+          const remaining = Math.max(0, (s.shares || 0) - (s.processedShares || 0));
+          if (remaining > 0) owned[s.symbol] = (owned[s.symbol] || 0) + remaining;
+        });
+        setOwnedStocks(owned);
+      } else {
+        setOwnedStocks({});
+      }
     } catch (err) {
       console.error("Error fetching user stocks:", err);
-      toast.error("Failed to load your stocks");
+      setOwnedStocks({});
     }
   };
 
-  // ✅ Refresh both stock lists
-  const refreshData = async () => {
-    setLoading(true);
-    await Promise.all([fetchAllStocks(), fetchUserStocks()]);
-    setLoading(false);
-  };
-
+  // --- Initial fetch ---
   useEffect(() => {
-    refreshData();
+    let mounted = true;
+    setLoading(true);
+
+    const getAll = async () => {
+      try {
+        const [marketRes, userStocks] = await Promise.all([
+          fetch("/api/stocks").then((r) => r.json()),
+          fetchUserStocks(),
+        ]);
+        if (mounted) {
+          setStocks(marketRes?.stocks || []);
+        }
+      } catch (err) {
+        console.error("Error fetching stocks:", err);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+
+    getAll();
+
+    // Auto-refresh user stocks every 15s (reflects admin approvals)
+    const interval = setInterval(fetchUserStocks, 15000);
+
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+    };
   }, []);
 
-  // ✅ Buy Stock
-  const handleBuy = async (symbol) => {
+  // --- Handle Buy ---
+  const handleBuyClick = (stock) => {
+    setModalStock(stock);
+    setSharesInput(1);
+  };
+
+  const handlePay = async () => {
+    if (!modalStock) return;
+    setPaying(true);
     try {
-      const res = await fetch("/api/user-stocks", {
+      const res = await fetch("/api/stocks/buy", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ symbol }),
+        body: JSON.stringify({
+          symbol: modalStock.symbol,
+          shares: sharesInput,
+          price: modalStock.price,
+        }),
       });
       const data = await res.json();
-      if (res.ok) {
-        toast.success(`Buy request for ${symbol} sent`);
-        refreshData();
+      setModalStock(null);
+      if (data.success) {
+        toast.success(
+          `Purchased ${sharesInput} shares of ${modalStock.symbol}. Awaiting admin approval.`
+        );
       } else {
-        toast.error(data.message || "Failed to buy");
+        toast.error(data.error || "Failed to save purchase.");
       }
     } catch (err) {
-      console.error(err);
-      toast.error("Error buying stock");
+      console.error("Buy error:", err);
+      toast.error("Network error during purchase.");
+    } finally {
+      setPaying(false);
     }
   };
 
-  // ✅ Sell Stock
-  const handleSell = async (symbol) => {
+  // --- Handle Sell ---
+  const submitSellRequest = async () => {
+    if (!sellModalStock) return;
+    setSelling(true);
     try {
-      const res = await fetch("/api/user-stocks/sell", {
+      const res = await fetch("/api/stocks/sell", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ symbol }),
+        body: JSON.stringify({
+          symbol: sellModalStock.symbol,
+          shares: sellSharesInput,
+          price: sellModalStock.price,
+          xrpAddress: sellModalStock.xrpAddress,
+        }),
       });
       const data = await res.json();
-      if (res.ok) {
-        toast.success(`Sell request for ${symbol} sent`);
-        refreshData();
+      setSellModalStock(null);
+      if (data.success) {
+        toast.success(`Sell request submitted. Awaiting admin approval.`);
+        await fetchUserStocks(); // Refresh holdings so deduction shows when approved
       } else {
-        toast.error(data.message || "Failed to sell");
+        toast.error(data.error || "Failed to submit sell request.");
       }
     } catch (err) {
-      console.error(err);
-      toast.error("Error selling stock");
+      console.error("Sell error:", err);
+      toast.error("Network error during sell.");
+    } finally {
+      setSelling(false);
     }
   };
 
+  // --- Compute total value of owned stocks ---
+  const totalBalance = stocks.reduce((sum, stock) => {
+    const shares = ownedStocks[stock.symbol] || 0;
+    return sum + shares * (stock.price || 0);
+  }, 0);
+
+  // --- UI ---
   return (
-    <div className="p-4 md:p-8 bg-[#0a0f1a] min-h-screen text-white">
-      <h1 className="text-2xl font-bold mb-4">📈 Stock Dashboard</h1>
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 py-10 px-4">
+      <div className="max-w-4xl mx-auto">
+        {/* Balance Summary */}
+        <div className="mb-8">
+          <div className="bg-gradient-to-r from-blue-700 via-blue-900 to-slate-900 rounded-2xl shadow-lg p-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-white">
+            <div className="flex items-center gap-3">
+              <LineChart size={32} className="text-blue-300" />
+              <div>
+                <h2 className="text-xl font-bold">Your Stock Balance</h2>
+                <p className="text-sm text-blue-200">Live total value of all owned stocks</p>
+              </div>
+            </div>
+            <div className="text-3xl font-extrabold text-green-400">
+              ${totalBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
+          </div>
+        </div>
 
-      <Tabs defaultValue="market" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="bg-gray-800 p-1 rounded-xl w-full md:w-auto">
-          <TabsTrigger value="market" className="w-1/2 md:w-auto">Market</TabsTrigger>
-          <TabsTrigger value="portfolio" className="w-1/2 md:w-auto">My Holdings</TabsTrigger>
-        </TabsList>
+        <div className="mb-8 text-center">
+          <LineChart className="mx-auto mb-2 text-blue-400" size={40} />
+          <h1 className="text-3xl font-bold text-white mb-2">Stocks Marketplace</h1>
+          <p className="text-slate-300">
+            Buy and track stocks alongside your crypto assets.
+          </p>
+        </div>
 
-        {/* ✅ Market Tab */}
-        <TabsContent value="market" className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {loading ? (
-            <p className="text-gray-400">Loading stocks...</p>
-          ) : allStocks.length === 0 ? (
-            <p className="text-gray-400">No stocks available</p>
-          ) : (
-            allStocks.map((stock) => (
-              <Card key={stock.symbol} className="bg-gray-900 border-gray-700 hover:shadow-lg transition-all">
-                <CardHeader>
-                  <CardTitle>{stock.symbol}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-gray-400 mb-2">{stock.name}</p>
-                  <p className="text-lg font-semibold mb-4">${stock.price?.toFixed(2)}</p>
-                  <Button
-                    className="w-full bg-blue-600 hover:bg-blue-700"
-                    onClick={() => handleBuy(stock.symbol)}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          {loading
+            ? Array.from({ length: 4 }).map((_, i) => (
+                <Card key={i} className="bg-white/5 backdrop-blur-md rounded-2xl animate-pulse border border-white/10 p-6">
+                  <div className="h-5 w-24 bg-blue-700/40 rounded mb-4"></div>
+                  <div className="h-6 w-36 bg-blue-800/40 rounded mb-2"></div>
+                  <div className="h-4 w-20 bg-blue-600/40 rounded"></div>
+                </Card>
+              ))
+            : stocks.map((stock) => {
+                const isUp = stock.change > 0;
+                const changeColor = isUp ? "text-green-400" : stock.change < 0 ? "text-red-400" : "text-gray-400";
+                const changeIcon = isUp ? <ArrowUpRight size={16} /> : stock.change < 0 ? <ArrowDownRight size={16} /> : null;
+                return (
+                  <Card
+                    key={stock.symbol}
+                    className="bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 border border-white/10 backdrop-blur-md p-5 text-white rounded-2xl shadow-lg transition hover:shadow-2xl hover:-translate-y-1 cursor-pointer"
                   >
-                    Buy
-                  </Button>
-                </CardContent>
-              </Card>
-            ))
-          )}
-        </TabsContent>
+                    <CardHeader className="flex items-center gap-3 p-0 mb-3">
+                      <img
+                        src={stock.logo}
+                        alt={stock.symbol}
+                        className="w-10 h-10 object-contain rounded-full border border-white/10 shadow"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = "/stock-placeholder.png";
+                        }}
+                      />
+                      <div>
+                        <h4 className="text-lg font-semibold flex items-center gap-2">{stock.symbol}</h4>
+                        <p className="text-xs text-blue-300">{stock.name}</p>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-0 mt-2">
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="text-xs text-blue-300">
+                          Price: ${stock.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </p>
+                        <span className={`ml-2 ${changeColor} font-semibold flex items-center gap-1`}>
+                          {changeIcon}
+                          <span>{stock.change > 0 ? "+" : ""}{stock.change.toFixed(2)}%</span>
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between mt-2 gap-2">
+                        <span className="text-xs text-white/70">
+                          Owned: <span className="font-bold">{ownedStocks[stock.symbol] ? ownedStocks[stock.symbol] : "-"}</span> shares
+                        </span>
+                        <div className="flex gap-2">
+                          <button
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-1 rounded transition text-xs"
+                            onClick={() => handleBuyClick(stock)}
+                          >
+                            Buy
+                          </button>
+                          <button
+                            className="bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-1 rounded transition text-xs"
+                            disabled={!ownedStocks[stock.symbol]}
+                            onClick={() => {
+                              setSellModalStock(stock);
+                              setSellSharesInput(1);
+                            }}
+                          >
+                            Sell
+                          </button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+        </div>
+      </div>
 
-        {/* ✅ Portfolio Tab */}
-        <TabsContent value="portfolio" className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {loading ? (
-            <p className="text-gray-400">Loading your holdings...</p>
-          ) : userStocks.length === 0 ? (
-            <p className="text-gray-400">You don’t have any stocks yet.</p>
-          ) : (
-            userStocks.map((holding) => (
-              <Card key={holding._id} className="bg-gray-900 border-gray-700 hover:shadow-lg transition-all">
-                <CardHeader>
-                  <CardTitle>{holding.symbol}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-gray-400 mb-1">
-                    Shares: <span className="font-semibold">{holding.shares}</span>
-                  </p>
-                  <p className="text-sm text-gray-400 mb-1">
-                    Buy Price: <span className="font-semibold">${holding.buyPrice?.toFixed(2)}</span>
-                  </p>
-                  <p className="text-sm text-gray-400 mb-3">
-                    Current Value:{" "}
-                    <span className="font-semibold">
-                      ${(holding.shares * holding.currentPrice).toFixed(2)}
-                    </span>
-                  </p>
-                  <Button
-                    className="w-full bg-red-600 hover:bg-red-700"
-                    onClick={() => handleSell(holding.symbol)}
-                  >
-                    Sell
-                  </Button>
-                </CardContent>
-              </Card>
-            ))
-          )}
-        </TabsContent>
-      </Tabs>
+      {/* Buy Modal */}
+      {modalStock && (
+        <Modal
+          stock={modalStock}
+          type="buy"
+          onClose={() => setModalStock(null)}
+          onConfirm={handlePay}
+          inputValue={sharesInput}
+          setInputValue={setSharesInput}
+          loading={paying}
+        />
+      )}
+
+      {/* Sell Modal */}
+      {sellModalStock && (
+        <Modal
+          stock={sellModalStock}
+          type="sell"
+          onClose={() => setSellModalStock(null)}
+          onConfirm={submitSellRequest}
+          inputValue={sellSharesInput}
+          setInputValue={setSellSharesInput}
+          loading={selling}
+          maxShares={ownedStocks[sellModalStock.symbol] || 1}
+        />
+      )}
     </div>
   );
-};
+}
 
-export default StockPage;
+// --- Modal component (Buy/Sell shared) ---
+function Modal({ stock, type, onClose, onConfirm, inputValue, setInputValue, loading, maxShares }) {
+  const isBuy = type === "buy";
+  const buttonColor = isBuy ? "bg-blue-600 hover:bg-blue-700" : "bg-red-600 hover:bg-red-700";
+  const labelText = isBuy ? "Select shares to buy:" : "Select shares to sell:";
+  const title = isBuy ? "Confirm Purchase" : "Confirm Sell";
+  const total = (stock.price * inputValue).toFixed(2);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur">
+      <div className="bg-slate-900 rounded-2xl border border-white/10 shadow-2xl p-6 w-full max-w-md relative">
+        <button className="absolute top-4 right-4 text-gray-400 hover:text-white" onClick={onClose}>
+          <X size={24} />
+        </button>
+        <div className="flex items-center gap-3 mb-4">
+          <img
+            src={stock.logo}
+            alt={stock.symbol}
+            className="w-10 h-10 object-contain rounded-full border border-white/10 shadow"
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = "/stock-placeholder.png";
+            }}
+          />
+          <div>
+            <h4 className="text-lg font-semibold">{stock.symbol}</h4>
+            <p className="text-xs text-blue-300">{stock.name}</p>
+          </div>
+        </div>
+        <div className="mb-4">
+          <label className="block text-sm text-white mb-2">{labelText}</label>
+          <input
+            type="number"
+            min={1}
+            max={maxShares || undefined}
+            value={inputValue}
+            onChange={(e) => setInputValue(Number(e.target.value))}
+            className="w-24 px-2 py-1 rounded bg-slate-800 border border-white/20 text-xs text-white"
+          />
+        </div>
+        {isBuy ? (
+          <>
+            <label className="block text-sm text-white mb-2">Send payment to XRP address:</label>
+            <div className="bg-slate-800 text-blue-300 px-3 py-2 rounded font-mono text-xs select-all">
+              rp5PMThCE9FtANy7ULtN4X43fNf7oXW6mtmt
+            </div>
+            <p className="text-xs text-gray-400 mt-2">After payment, click "{title}".</p>
+          </>
+        ) : (
+          <>
+            <label className="block text-sm text-white mb-2">Withdraw to XRP address:</label>
+            <input
+              type="text"
+              placeholder="Enter your XRP wallet address"
+              value={stock.xrpAddress || ""}
+              onChange={(e) => (stock.xrpAddress = e.target.value)}
+              className="w-full px-3 py-2 rounded bg-slate-800 border border-white/20 text-xs text-blue-300 font-mono"
+            />
+          </>
+        )}
+        <button
+          className={`w-full ${buttonColor} text-white font-semibold px-4 py-2 rounded transition text-base mt-4`}
+          disabled={loading}
+          onClick={onConfirm}
+        >
+          {loading ? "Processing..." : `${title} ($${total})`}
+        </button>
+      </div>
+    </div>
+  );
+}
