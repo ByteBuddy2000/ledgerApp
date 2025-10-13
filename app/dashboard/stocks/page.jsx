@@ -1,6 +1,5 @@
 "use client";
 
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { LineChart, ArrowUpRight, ArrowDownRight, X } from "lucide-react";
@@ -17,41 +16,49 @@ export default function StockPage() {
   const [sellSharesInput, setSellSharesInput] = useState(1);
   const [selling, setSelling] = useState(false);
 
+  // fetch approved user stocks and marketplace stocks
+  const fetchUserStocks = async () => {
+    try {
+      const res = await fetch("/api/user-stocks?approved=true");
+      const data = await res.json();
+      if (data.success && Array.isArray(data.stocks)) {
+        const owned = {};
+        data.stocks.forEach((s) => {
+          const remaining = Math.max(0, (s.shares || 0) - (s.processedShares || 0));
+          if (remaining > 0) {
+            owned[s.symbol] = (owned[s.symbol] || 0) + remaining;
+          }
+        });
+        setOwnedStocks(owned);
+      } else {
+        setOwnedStocks({});
+      }
+    } catch (err) {
+      console.error("Error fetching user stocks:", err);
+      setOwnedStocks({});
+    }
+  };
 
   useEffect(() => {
+    let mounted = true;
     setLoading(true);
-    // Fetch all stocks
-    fetch("/api/stocks")
-      .then((res) => res.json())
-      .then((data) => {
-        setStocks(data.stocks);
-        setLoading(false);
-      });
-    // Fetch user's approved stocks
-    async function fetchUserStocks() {
-  try {
-    const res = await fetch("/api/user-stocks?approved=true");
-    const data = await res.json();
 
-    if (data.success && Array.isArray(data.stocks)) {
-      const owned = {};
-      data.stocks.forEach((s) => {
-        const remaining = Math.max(0, (s.shares || 0) - (s.processedShares || 0));
-        if (remaining > 0) {
-          owned[s.symbol] = (owned[s.symbol] || 0) + remaining;
-        }
-      });
-      setOwnedStocks(owned);
-    }
-  } catch (err) {
-    console.error("Error fetching user stocks:", err);
-  }
-}
+    // fetch marketplace stocks
+    const p1 = fetch("/api/stocks").then((res) => res.json()).then((data) => {
+      if (mounted) setStocks(data.stocks || []);
+    }).catch((err) => {
+      console.error("Error fetching market stocks:", err);
+      if (mounted) setStocks([]);
+    });
 
-useEffect(() => {
-  fetchUserStocks();
-}, []);
+    // fetch user's approved holdings
+    const p2 = fetchUserStocks();
 
+    Promise.all([p1, p2]).finally(() => {
+      if (mounted) setLoading(false);
+    });
+
+    return () => { mounted = false; };
   }, []);
 
   const handleBuyClick = (stock) => {
@@ -60,36 +67,72 @@ useEffect(() => {
   };
 
   const handlePay = async () => {
+    if (!modalStock) return;
     setPaying(true);
+    try {
+      const res = await fetch("/api/stocks/buy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          symbol: modalStock.symbol,
+          shares: sharesInput,
+          price: modalStock.price,
+        }),
+      });
+      const data = await res.json();
+      setModalStock(null);
+      if (data.success) {
+        toast.success(
+          `Purchased ${sharesInput} shares of ${modalStock.symbol} after XRP payment. Awaiting admin approval.`
+        );
+      } else {
+        toast.error(data.error || "Failed to save purchase.");
+      }
+    } catch (err) {
+      console.error("Buy error:", err);
+      toast.error("Network error during purchase.");
+    } finally {
+      setPaying(false);
+    }
+  };
 
-    // Call the buy API to save the purchase
-    const res = await fetch("/api/stocks/buy", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        symbol: modalStock.symbol,
-        shares: sharesInput,
-        price: modalStock.price,
-      }),
-    });
-    const data = await res.json();
-
-    setPaying(false);
-    setModalStock(null);
-
-    if (data.success) {
-      toast.success(
-        `Purchased ${sharesInput} shares of ${modalStock.symbol} after XRP payment. Please check your transaction history for approval status.`
-      );
-    } else {
-      toast.error(data.error || "Failed to save purchase.");
+  // after sell submission we re-fetch user holdings so UI stays current when admin later approves
+  const submitSellRequest = async () => {
+    if (!sellModalStock) return;
+    setSelling(true);
+    try {
+      const res = await fetch("/api/stocks/sell", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          symbol: sellModalStock.symbol,
+          shares: sellSharesInput,
+          price: sellModalStock.price,
+          xrpAddress: sellModalStock.xrpAddress,
+        }),
+      });
+      const data = await res.json();
+      setSellModalStock(null);
+      if (data.success) {
+        toast.success(`Sell request submitted. Awaiting admin approval.`);
+        // do not remove ownedShares immediately — admin must approve to deduct.
+        // but refresh holdings so any server-side differences are reflected.
+        await fetchUserStocks();
+      } else {
+        toast.error(data.error || "Failed to submit sell request.");
+      }
+    } catch (err) {
+      console.error("Sell error:", err);
+      toast.error("Network error during sell.");
+    } finally {
+      setSelling(false);
     }
   };
 
   // Calculate total live stock balance
   const totalBalance = stocks.reduce((sum, stock) => {
     const shares = ownedStocks[stock.symbol] || 0;
-    return sum + shares * stock.price;
+    return sum + shares * (stock.price || 0);
   }, 0);
 
   return (
@@ -303,28 +346,7 @@ useEffect(() => {
             <button
               className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 rounded transition text-base mt-2"
               disabled={selling}
-              onClick={async () => {
-                setSelling(true);
-                // Call the sell API to save the withdrawal request
-                const res = await fetch("/api/stocks/sell", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    symbol: sellModalStock.symbol,
-                    shares: sellSharesInput,
-                    price: sellModalStock.price,
-                    xrpAddress: sellModalStock.xrpAddress,
-                  }),
-                });
-                const data = await res.json();
-                setSelling(false);
-                setSellModalStock(null);
-                if (data.success) {
-                  toast.success(`Sell request for ${sellSharesInput} shares of ${sellModalStock.symbol} submitted. Await admin approval.`);
-                } else {
-                  toast.error(data.error || "Failed to submit sell request.");
-                }
-              }}
+              onClick={submitSellRequest}
             >
               {selling ? "Processing..." : `Confirm Sell ($${(sellModalStock.price * sellSharesInput).toFixed(2)})`}
             </button>
