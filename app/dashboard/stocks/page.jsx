@@ -52,8 +52,6 @@ useEffect(() => {
   fetchUserStocks();
 }, []);
 
-        }
-      });
   }, []);
 
   const handleBuyClick = (stock) => {
