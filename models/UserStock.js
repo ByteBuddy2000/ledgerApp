@@ -6,7 +6,9 @@ const UserStockSchema = new mongoose.Schema(
     symbol: { type: String, required: true },
     shares: { type: Number, required: true, default: 0 },
     price: { type: Number, required: true },
-    status: { type: String, default: "pending" },
+  status: { type: String, default: "pending" },
+  // For sell requests, how many shares the admin processed (approved as sold)
+  processedShares: { type: Number, default: 0 },
     read: { type: Boolean, default: false }, // unread by default
     createdAt: { type: Date, default: Date.now },
   },

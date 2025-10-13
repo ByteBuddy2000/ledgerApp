@@ -179,6 +179,80 @@ export default function AdminDashboard({ recentCustomers = [] }) {
     setProcessingWithdrawalId(null);
   };
 
+  // Added states for pending sells
+  const [pendingSells, setPendingSells] = useState([]);
+  const [loadingSells, setLoadingSells] = useState(true);
+  const [processingSellId, setProcessingSellId] = useState(null);
+  const [approvedSharesMap, setApprovedSharesMap] = useState({});
+  const [sellError, setSellError] = useState(null);
+
+  useEffect(() => {
+    async function fetchPendingSells() {
+      setLoadingSells(true);
+      try {
+        const res = await fetch("/api/admin/sell-requests");
+        const data = await res.json();
+        if (data.success) {
+          setPendingSells(data.sells || []);
+        } else {
+          setPendingSells([]);
+        }
+      } catch (err) {
+        setPendingSells([]);
+      }
+      setLoadingSells(false);
+    }
+    fetchPendingSells();
+  }, []);
+
+  const handleApproveSell = async (sellId) => {
+    setProcessingSellId(sellId);
+    setSellError(null);
+    try {
+      const approved = Number(approvedSharesMap[sellId]) || undefined;
+      const body = { id: sellId, action: "approve", approvedShares: approved };
+      const res = await fetch("/api/admin/process-sell", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || "Failed to approve sell");
+
+      const updated = data.stock;
+      setPendingSells(prev => {
+        if (!updated) return prev.filter(s => s._id !== sellId);
+        if (updated.status === "sold") return prev.filter(s => s._id !== sellId);
+        return prev.map(s => (s._id === sellId ? updated : s));
+      });
+
+      setApprovedSharesMap(m => { const c = { ...m }; delete c[sellId]; return c; });
+    } catch (err) {
+      setSellError(err.message || "Error processing sell");
+    } finally {
+      setProcessingSellId(null);
+    }
+  };
+
+  const handleRejectSell = async (sellId) => {
+    setProcessingSellId(sellId);
+    setSellError(null);
+    try {
+      const res = await fetch("/api/admin/process-sell", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: sellId, action: "reject" }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || "Failed to reject sell");
+      setPendingSells(prev => prev.filter(s => s._id !== sellId));
+    } catch (err) {
+      setSellError(err.message || "Error rejecting sell");
+    } finally {
+      setProcessingSellId(null);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-bl from-[#350661ff] via-[#000000] to-[#001F3F] text-white">
       <div className="absolute inset-0 opacity-5 pointer-events-none z-0" />

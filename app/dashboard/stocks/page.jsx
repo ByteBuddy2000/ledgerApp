@@ -28,16 +28,30 @@ export default function StockPage() {
         setLoading(false);
       });
     // Fetch user's approved stocks
-    fetch("/api/user-stocks?approved=true")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success && Array.isArray(data.stocks)) {
-          // Aggregate shares by symbol
-          const owned = {};
-          data.stocks.forEach(s => {
-            owned[s.symbol] = (owned[s.symbol] || 0) + s.shares;
-          });
-          setOwnedStocks(owned);
+    async function fetchUserStocks() {
+  try {
+    const res = await fetch("/api/user-stocks?approved=true");
+    const data = await res.json();
+
+    if (data.success && Array.isArray(data.stocks)) {
+      const owned = {};
+      data.stocks.forEach((s) => {
+        const remaining = Math.max(0, (s.shares || 0) - (s.processedShares || 0));
+        if (remaining > 0) {
+          owned[s.symbol] = (owned[s.symbol] || 0) + remaining;
+        }
+      });
+      setOwnedStocks(owned);
+    }
+  } catch (err) {
+    console.error("Error fetching user stocks:", err);
+  }
+}
+
+useEffect(() => {
+  fetchUserStocks();
+}, []);
+
         }
       });
   }, []);
