@@ -44,10 +44,10 @@ export async function GET() {
   const commoditySet = new Set(["XAUUSD", "XAGUSD", "XPDUSD", "XCUUSD", "IRIDIUM"]);
   const basePrices = {
     XAUUSD: 1950.0,   // gold ~$1950/oz
-    XAGUSD: 24.5,     // silver ~$24.5/oz
-    XPDUSD: 900.0,    // palladium ~$900/oz
+    XAGUSD: 52.63,     // silver ~$24.5/oz
+    XPDUSD: 1589.0,    // palladium ~$900/oz
     XCUUSD: 4.25,     // copper ~$4.25/lb (mock)
-    IRIDIUM: 1400.0,  // iridium (mock)
+    IRIDIUM: 19.03,  // iridium (mock)
   };
   const vol = {
     XAUUSD: 6.0,
