@@ -44,12 +44,28 @@ export default function StockPage() {
 
     const getAll = async () => {
       try {
-        const [marketRes, userStocks] = await Promise.all([
+        // fetch market equities + commodities in parallel, and refresh user's approved stocks
+        const [marketRes, commoditiesRes] = await Promise.all([
           fetch("/api/stocks").then((r) => r.json()),
-          fetchUserStocks(),
+          fetch("/api/commodities").then((r) => r.json()),
         ]);
+        // refresh user holdings (separate call so interval works)
+        await fetchUserStocks();
+
+        const marketStocks = marketRes?.stocks || [];
+        const commodities = commoditiesRes?.commodities || [];
+        // normalize commodities shape to match stocks
+        const normalizedCommodities = (commodities || []).map((c) => ({
+          symbol: c.symbol,
+          name: c.name,
+          price: typeof c.price === "number" ? c.price : 0,
+          change: typeof c.change === "number" ? c.change : 0,
+          logo: c.logo || `/commodities/${c.symbol.toLowerCase()}.svg`,
+        }));
+
         if (mounted) {
-          setStocks(marketRes?.stocks || []);
+          // combine equities + commodities for display
+          setStocks([...marketStocks, ...normalizedCommodities]);
         }
       } catch (err) {
         console.error("Error fetching stocks:", err);
@@ -169,7 +185,7 @@ export default function StockPage() {
             Buy and track stocks alongside your crypto assets.
           </p>
         </div>
-
+      
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {loading
             ? Array.from({ length: 4 }).map((_, i) => (
