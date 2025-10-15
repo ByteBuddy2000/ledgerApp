@@ -42,31 +42,16 @@ export default function StockPage() {
     let mounted = true;
     setLoading(true);
 
+    // Single source: /api/stocks already includes mocked commodities (copper, gold, etc.)
+    // Poll every 15s so commodity mock prices appear "lowkey" real-time.
     const getAll = async () => {
       try {
-        // fetch market equities + commodities in parallel, and refresh user's approved stocks
-        const [marketRes, commoditiesRes] = await Promise.all([
-          fetch("/api/stocks").then((r) => r.json()),
-          fetch("/api/commodities").then((r) => r.json()),
-        ]);
-        // refresh user holdings (separate call so interval works)
+        const marketRes = await fetch("/api/stocks", { cache: "no-store" }).then((r) => r.json());
+        // refresh user holdings so owned balances update after admin actions
         await fetchUserStocks();
 
         const marketStocks = marketRes?.stocks || [];
-        const commodities = commoditiesRes?.commodities || [];
-        // normalize commodities shape to match stocks
-        const normalizedCommodities = (commodities || []).map((c) => ({
-          symbol: c.symbol,
-          name: c.name,
-          price: typeof c.price === "number" ? c.price : 0,
-          change: typeof c.change === "number" ? c.change : 0,
-          logo: c.logo || `/commodities/${c.symbol.toLowerCase()}.svg`,
-        }));
-
-        if (mounted) {
-          // combine equities + commodities for display
-          setStocks([...marketStocks, ...normalizedCommodities]);
-        }
+        if (mounted) setStocks(marketStocks);
       } catch (err) {
         console.error("Error fetching stocks:", err);
       } finally {
@@ -75,9 +60,7 @@ export default function StockPage() {
     };
 
     getAll();
-
-    // Auto-refresh user stocks every 15s (reflects admin approvals)
-    const interval = setInterval(fetchUserStocks, 15000);
+    const interval = setInterval(getAll, 15000);
 
     return () => {
       mounted = false;
