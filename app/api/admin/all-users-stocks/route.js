@@ -24,50 +24,28 @@ export async function GET(req) {
     "IRIDIUM", // Iridium
   ];
 
-  // Aggregate UserStock to compute net shares per user per symbol:
-  // - treat records with "sell" in status as sell requests; use processedShares as sold amount
-  // - treat other statuses as buy records and include shares
+  // Aggregate UserStock to compute current approved holdings per user per symbol.
+  // Only documents with status === 'approved' represent assets the user currently owns.
+  // Ignore pending buy/sell requests and sell request documents to avoid double-counting.
   const agg = await UserStock.aggregate([
+    { $match: { status: "approved" } },
     {
       $project: {
         user: 1,
         symbol: 1,
-        status: 1,
         shares: { $ifNull: ["$shares", 0] },
-        processedShares: { $ifNull: ["$processedShares", 0] },
-      },
-    },
-    {
-      $addFields: {
-        isSell: { $regexMatch: { input: "$status", regex: /sell/i } },
-      },
-    },
-    {
-      $project: {
-        user: 1,
-        symbol: 1,
-        buyShares: { $cond: ["$isSell", 0, "$shares"] },
-        soldShares: { $cond: ["$isSell", "$processedShares", 0] },
       },
     },
     {
       $group: {
         _id: { user: "$user", symbol: "$symbol" },
-        totalBought: { $sum: "$buyShares" },
-        totalSold: { $sum: "$soldShares" },
-      },
-    },
-    {
-      $project: {
-        user: "$_id.user",
-        symbol: "$_id.symbol",
-        netShares: { $max: [{ $subtract: ["$totalBought", "$totalSold"] }, 0] },
+        totalShares: { $sum: "$shares" },
       },
     },
     {
       $group: {
-        _id: "$user",
-        stocks: { $push: { symbol: "$symbol", shares: "$netShares" } },
+        _id: "$_id.user",
+        stocks: { $push: { symbol: "$_id.symbol", shares: "$totalShares" } },
       },
     },
   ]);

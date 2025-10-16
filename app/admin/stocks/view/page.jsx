@@ -66,7 +66,7 @@ export default function ViewUserStocksPage() {
         `/api/admin/all-users-stocks${
           searchTerm ? `?search=${encodeURIComponent(searchTerm)}` : ""
         }`
-      );
+      )
       const data = await res.json();
       setUsers(data.users || []);
     } catch (err) {
@@ -76,7 +76,7 @@ export default function ViewUserStocksPage() {
     }
   };
 
-  useEffect(() => {
+  useEffect(() => {z
     fetchUsers();
   }, [searchTerm]);
 
