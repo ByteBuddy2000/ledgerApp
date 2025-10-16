@@ -1,7 +1,7 @@
 import ActionButtons from "./ActionButtons";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
-import dbConnect from "@/lib/connectDB";
+import { connectToDB } from "@/lib/connectDB";
 import User from "@/models/User";
 
 export default async function ActionButtonsPage() {
@@ -10,7 +10,7 @@ export default async function ActionButtonsPage() {
   const userEmail = session?.user?.email;
 
   // Fetch the user from the database
-  await dbConnect();
+  await connectToDB();
   const user = userEmail ? await User.findOne({ email: userEmail }).lean() : null;
   const userId = user?._id?.toString() || "";
 
