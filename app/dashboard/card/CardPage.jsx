@@ -78,7 +78,7 @@ const CardPage = ({ firstName = "", lastName = "", email = "", phone = "" }) => 
 						{/* Card Logo & Brand */}
 						<div className="flex items-center justify-between z-10">
 							<img
-								src="https://authorizedqfsledger.com/assets/img/logo.png"
+								src="/qfslogo.png"
 								width={50}
 								alt="QFS Logo"
 								className="rounded"
