@@ -15,7 +15,7 @@ const AdminTopNav = () => {
                 <LogoutButton />
 
             </div>
-            <div className='flex space-x-4 bg-gray-800 p-4 rounded-lg'>
+            <div className='flex space-x-4 bg-gradient-to-bl from-[ #372547ff] via-[#000000] to-[#001F3F] p-4 rounded-lg'>
                 <Link href="/admin" className='cursor-pointer text-xs text-white w-full flex items-center justify-center'>Admin Home</Link>
                 <Link href="/admin/customers" className='cursor-pointer text-xs text-white w-full flex items-center justify-center'>User's Listing</Link>
                 <Link href="/admin/wallet" className='cursor-pointer text-xs text-white w-full flex items-center justify-center'>Top-Up Users Wallet</Link>

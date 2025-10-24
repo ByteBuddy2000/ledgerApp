@@ -17,6 +17,7 @@ const MedbedRegistrationSchema = new mongoose.Schema(
     },
     txHash: { type: String, default: "" },
     paidAt: { type: Date },
+    adminApproved: { type: Boolean, default: false },
   },
   {
     timestamps: true,
