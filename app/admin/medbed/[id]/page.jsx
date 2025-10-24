@@ -102,6 +102,7 @@ export default function MedbedDetailPage() {
           <Info label="Color" value={registration.color} />
           <Info label="Amount (XRP)" value={registration.amountXrp ?? "-"} />
           <Info label="Status" value={registration.status} />
+          <Info label='Address' value={registration.address ?? "-"} />
           <Info
             label="Admin Approved"
             value={registration.adminApproved ? "Yes" : "No"}
