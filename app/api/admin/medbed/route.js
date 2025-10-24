@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import connectToDB from "../../../../lib/connectDB";
-import MedbedRegistration from "../../../../models/MedbedRegistration";
+import {connectToDB}  from "@/lib/connectDB"
+import MedbedRegistration from "@/models/MedbedRegistration";
 
 /**
  * GET /api/admin/medbed
