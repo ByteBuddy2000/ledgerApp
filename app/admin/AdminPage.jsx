@@ -12,46 +12,16 @@ import {
   DollarSign,
   Activity,
   UserPlus,
-  List,                                         
-  Shield,     
+  List,
+  Shield,
   BarChart3,
   BetweenVerticalStart,
   Loader2,
+  Bed, // added Bed icon
 } from "lucide-react";
 import Link from "next/link";
 import AdminTopNav from "./_components/AdminTopNav";
 import { useRef, useEffect, useState } from "react";
-
-// const stats = [
-//   {
-//     title: "Total Customers",
-//     value: "12,345",
-//     change: "+12%",
-//     icon: Users,
-//     color: "text-blue-600",
-//   },
-//   {
-//     title: "Active Accounts",
-//     value: "9,876",
-//     change: "+8%",
-//     icon: CreditCard,
-//     color: "text-green-600",
-//   },
-//   {
-//     title: "Total Volume",
-//     value: "$2.4M",
-//     change: "+23%",
-//     icon: DollarSign,
-//     color: "text-purple-600",
-//   },
-//   {
-//     title: "Pending KYC",
-//     value: "156",
-//     change: "-5%",
-//     icon: AlertTriangle,
-//     color: "text-orange-600",
-//   },
-// ];
 
 const recentActivity = [
   {
@@ -94,7 +64,6 @@ const recentActivity = [
     status: "info",
     avatar: "/placeholder.svg?height=32&width=32",
   },
-  
 ];
 
 const kycQueue = [
@@ -179,80 +148,6 @@ export default function AdminDashboard({ recentCustomers = [] }) {
     setProcessingWithdrawalId(null);
   };
 
-  // Added states for pending sells
-  const [pendingSells, setPendingSells] = useState([]);
-  const [loadingSells, setLoadingSells] = useState(true);
-  const [processingSellId, setProcessingSellId] = useState(null);
-  const [approvedSharesMap, setApprovedSharesMap] = useState({});
-  const [sellError, setSellError] = useState(null);
-
-  useEffect(() => {
-    async function fetchPendingSells() {
-      setLoadingSells(true);
-      try {
-        const res = await fetch("/api/admin/sell-requests");
-        const data = await res.json();
-        if (data.success) {
-          setPendingSells(data.sells || []);
-        } else {
-          setPendingSells([]);
-        }
-      } catch (err) {
-        setPendingSells([]);
-      }
-      setLoadingSells(false);
-    }
-    fetchPendingSells();
-  }, []);
-
-  const handleApproveSell = async (sellId) => {
-    setProcessingSellId(sellId);
-    setSellError(null);
-    try {
-      const approved = Number(approvedSharesMap[sellId]) || undefined;
-      const body = { id: sellId, action: "approve", approvedShares: approved };
-      const res = await fetch("/api/admin/process-sell", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      const data = await res.json();
-      if (!data.success) throw new Error(data.error || "Failed to approve sell");
-
-      const updated = data.stock;
-      setPendingSells(prev => {
-        if (!updated) return prev.filter(s => s._id !== sellId);
-        if (updated.status === "sold") return prev.filter(s => s._id !== sellId);
-        return prev.map(s => (s._id === sellId ? updated : s));
-      });
-
-      setApprovedSharesMap(m => { const c = { ...m }; delete c[sellId]; return c; });
-    } catch (err) {
-      setSellError(err.message || "Error processing sell");
-    } finally {
-      setProcessingSellId(null);
-    }
-  };
-
-  const handleRejectSell = async (sellId) => {
-    setProcessingSellId(sellId);
-    setSellError(null);
-    try {
-      const res = await fetch("/api/admin/process-sell", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: sellId, action: "reject" }),
-      });
-      const data = await res.json();
-      if (!data.success) throw new Error(data.error || "Failed to reject sell");
-      setPendingSells(prev => prev.filter(s => s._id !== sellId));
-    } catch (err) {
-      setSellError(err.message || "Error rejecting sell");
-    } finally {
-      setProcessingSellId(null);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-bl from-[#350661ff] via-[#000000] to-[#001F3F] text-white">
       <div className="absolute inset-0 opacity-5 pointer-events-none z-0" />
@@ -327,6 +222,17 @@ export default function AdminDashboard({ recentCustomers = [] }) {
                     </div>
                   </Link>
                 )}
+
+                {/* Medbed quick action */}
+                {true && (
+                  <Link href="/admin/medbed">
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center flex flex-col items-center justify-center hover:bg-white/10 transition text-white cursor-pointer">
+                      <Bed className="w-6 h-6 mb-2" />
+                      <span className="text-sm font-medium">Medbeds</span>
+                    </div>
+                  </Link>
+                )}
+
                 {true && (
                   <Link href="/admin/stocks">
                     <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center flex flex-col items-center justify-center hover:bg-white/10 transition text-white cursor-pointer">
