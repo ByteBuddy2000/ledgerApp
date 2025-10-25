@@ -26,7 +26,7 @@ import {
 const actions = [
   { label: "Deposit", modal: "deposit", icon: <Send size={20} /> },
   { label: "Withdrawal", modal: "withdrawal", icon: <ArrowDownToLine size={20} /> },
-  { label: "Medbed", modal: null, icon: <ShieldAlert size={20} /> },
+  // { label: "Medbed", modal: null, icon: <ShieldAlert size={20} /> },
   { label: "Buy", modal: null, icon: <WalletCards size={20} /> },
   { label: "Stocks", modal: null, icon: <LineChart size={20} /> },
   { label: "401k", modal: null, icon: <Briefcase size={20} /> },
