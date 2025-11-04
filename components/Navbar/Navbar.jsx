@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
-import { LogIn, UserPlus } from "lucide-react";
+import { LogIn, UserPlus, Download } from "lucide-react";
 import Image from "next/image";
 
 const navLinks = [
@@ -12,6 +12,12 @@ const navLinks = [
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
+
+  const handleDownload = () => {
+    // Replace with your actual app download URL
+    const downloadUrl = "https://drive.google.com/file/d/1kxqTgxtb_F11MlhwjjqlUQprQyejTv6-/view?usp=drivesdk";
+    window.open(downloadUrl, "_blank");
+  };
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 border-b border-white/10
@@ -35,6 +41,15 @@ export default function Navbar() {
               {label}
             </Link>
           ))}
+
+          {/* Download Button */}
+          <button
+            onClick={handleDownload}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+          >
+            <Download className="w-4 h-4" />
+            Download App
+          </button>
         </div>
 
         {/* Auth Buttons */}
@@ -43,7 +58,8 @@ export default function Navbar() {
             href="/register"
             className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-700 text-white text-sm font-semibold shadow hover:from-blue-500 hover:to-indigo-600 transition"
           >
-            <UserPlus size={16} className="inline mr-1" />
+            <UserPlus size={16} className="inline mr-+
+            " />
             Register
           </Link>
           <Link
@@ -124,6 +140,15 @@ export default function Navbar() {
               <LogIn size={16} className="inline mr-1" />
               Login
             </Link>
+
+            {/* Mobile Download Button */}
+            <button
+              onClick={handleDownload}
+              className="flex items-center gap-2 w-full bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-md text-base font-medium transition-colors"
+            >
+              <Download className="w-4 h-4" />
+              Download App
+            </button>
           </div>
         </div>
       </div>
