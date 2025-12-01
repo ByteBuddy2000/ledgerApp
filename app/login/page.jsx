@@ -104,7 +104,7 @@ export default function LoginPage() {
           </div>
 
           <div className="text-sm mt-4 flex justify-between text-blue-600">
-            <a href="#">Forgot Password?</a>
+            <a href="/forgot-password">Forgot Password?</a>
             <a href="/register">Create Account</a>
           </div>
           {/* Back to Home Page */}
