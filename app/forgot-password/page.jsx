@@ -84,11 +84,7 @@ export default function ForgotPasswordPage() {
           </Link>
         </div>
 
-        <p className="text-xs text-gray-500 mt-4">
-          Note: the API route /api/auth/forgot-password must exist to send reset
-          emails. If not present, create a server route that generates a secure
-          token, stores it, and emails the user a reset link.
-        </p>
+       
       </div>
     </div>
   );
