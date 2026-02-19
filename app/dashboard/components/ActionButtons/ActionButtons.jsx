@@ -67,7 +67,7 @@ function QRModal({ address, coinLabel, onClose }) {
 
   return (
     <motion.div
-      className="fixed inset-0 z-[11000] flex items-center justify-center"
+      className="fixed inset-0 z-[11000] flex items-center justify-center pt-20"
       initial="hidden"
       animate="visible"
       exit="hidden"
