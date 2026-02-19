@@ -173,7 +173,7 @@ function DepositModal({ onClose }) {
   return (
     <>
       <ModalTemplate title="Deposit Funds" onClose={onClose}>
-        <div className="space-y-10 text-sm">
+        <div className="space-y-6 text-sm">
           <div>
             <label className="block mb-1">Choose Crypto</label>
             <Select onValueChange={setCoin}>
