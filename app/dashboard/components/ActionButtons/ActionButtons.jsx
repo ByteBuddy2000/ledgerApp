@@ -124,21 +124,6 @@ function DepositModal({ onClose }) {
     bnb: "0xfE09a5D6Cd24f4E6172627011b85866DE3fB447"
   };
 
-  const cryptoOptions = [
-    { value: "btc", label: "Bitcoin" },
-    { value: "eth", label: "Ethereum" },
-    { value: "sol", label: "Solana" },
-    { value: "usdt", label: "USDT (TRC20)" },
-    { value: "usdterc20", label: "USDT (ERC20)" },
-    { value: "dogecoin", label: "Dogecoin" },
-    { value: "xrp", label: "XRP" },
-    { value: "xlm", label: "Stellar" },
-    { value: "bnb", label: "Binance Coin" },
-    { value: "ton", label: "Ton Coin" },
-    { value: "ada", label: "Cardano" },
-    { value: "tron", label: "Tron" }
-  ];
-
 
   const cryptoOptions = [
     { value: "btc", label: "Bitcoin" },
