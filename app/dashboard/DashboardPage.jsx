@@ -49,24 +49,25 @@ export default async function DashboardPage() {
         {/* Main Layout */}
         <div className="flex flex-col gap-10 lg:grid lg:grid-cols-3 lg:gap-12">
           {/* Left Content */}
-          <div className="order-1 lg:col-span-2 space-y-20">
-            {/* Carousel */}
-            <div className="glass-card">
-              <CardCarousel userIdOrEmail={userEmail} />
-            </div>
+<div className="order-1 lg:col-span-2 space-y-16">
+  {/* Carousel */}
+  <div className="glass-card">
+    <CardCarousel userIdOrEmail={userEmail} />
+  </div>
 
-            {/* Quick Actions */}
-            <div className="glass-card">
-              <h2 className="text-xl font-bold mb-4">⚡ Quick Actions</h2>
-              <ActionButtons userId={user?._id?.toString() || ""} />
-            </div>
+  {/* Quick Actions */}
+  <div className="glass-card">
+    <h2 className="text-xl font-bold mb-4">⚡ Quick Actions</h2>
+    <ActionButtons userId={user?._id?.toString() || ""} />
+  </div>
 
-            {/* Assets */}
-            <div className="glass-card">
-              <h2 className="text-xl font-bold mb-4">💰 Your Assets</h2>
-              <AssetSection />
-            </div>
-          </div>
+  {/* Assets - Properly Pushed Down */}
+  <div className="glass-card mt-6 lg:mt-10">
+    <h2 className="text-xl font-bold mb-4">💰 Your Assets</h2>
+    <AssetSection />
+  </div>
+</div>
+
 
           {/* Market Overview */}
           <div className="order-2 lg:sticky lg:top-12 h-fit">
