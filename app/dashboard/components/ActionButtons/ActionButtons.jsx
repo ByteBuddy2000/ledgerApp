@@ -57,9 +57,58 @@ function ModalTemplate({ title, onClose, children }) {
   );
 }
 
+// QR display modal — clean, centered, with copy/download/close actions
+function QRModal({ address, coinLabel, onClose }) {
+  if (!address) return null;
+  return (
+    <motion.div className="fixed inset-0 z-[11000] flex items-center justify-center" initial="hidden" animate="visible" exit="hidden" variants={overlayVariants}>
+      <motion.div className="absolute inset-0 bg-black/70 backdrop-blur-lg" onClick={onClose} />
+      <motion.div className="relative w-full max-w-sm bg-card rounded-xl text-foreground p-6 z-[11001] border border-border shadow-2xl" variants={modalVariants} transition={{ type: "spring", duration: 0.4 }}>
+        <div className="flex items-start justify-between mb-4">
+          <div>
+            <h3 className="text-lg font-semibold">{coinLabel || "Wallet"} QR</h3>
+            <p className="text-xs text-muted-foreground">Scan to pay or copy the wallet address</p>
+          </div>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="flex flex-col items-center gap-4">
+          <img
+            src={`https://api.qrserver.com/v1/create-qr-code/?size=360x360&data=${encodeURIComponent(address)}`}
+            alt="QR Code"
+            className="w-56 h-56 bg-white p-2 rounded-lg shadow"
+          />
+
+          <div className="w-full break-words font-mono text-sm bg-card/50 p-2 rounded border border-border text-foreground text-center">{address}</div>
+
+          <div className="flex w-full gap-3">
+            <button
+              onClick={() => navigator.clipboard.writeText(address)}
+              className="flex-1 inline-flex items-center justify-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded hover:bg-emerald-700 transition shadow-md"
+            >
+              <Copy size={14} /> Copy
+            </button>
+            <a
+              href={`https://api.qrserver.com/v1/create-qr-code/?size=1024x1024&data=${encodeURIComponent(address)}`}
+              download={`qr-${(coinLabel || 'address').toLowerCase()}.png`}
+              className="inline-flex items-center justify-center gap-2 bg-slate-700 text-white px-4 py-2 rounded hover:opacity-90 transition shadow-md"
+            >
+              <Download size={14} /> Download
+            </a>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+
 function DepositModal({ onClose }) {
   const [coin, setCoin] = useState("");
   const [copied, setCopied] = useState(false);
+  const [showQr, setShowQr] = useState(false);
 
   // Make sure the keys match the cryptoOptions values
   const walletAddresses = {
@@ -74,7 +123,21 @@ function DepositModal({ onClose }) {
     bnb: "0xfE09a5D6Cd24f4E6172627011b85866DE3fB447"
   };
 
-  const address = walletAddresses[coin];
+  const cryptoOptions = [
+    { value: "btc", label: "Bitcoin" },
+    { value: "eth", label: "Ethereum" },
+    { value: "sol", label: "Solana" },
+    { value: "usdt", label: "USDT (TRC20)" },
+    { value: "usdterc20", label: "USDT (ERC20)" },
+    { value: "dogecoin", label: "Dogecoin" },
+    { value: "xrp", label: "XRP" },
+    { value: "xlm", label: "Stellar" },
+    { value: "bnb", label: "Binance Coin" },
+    { value: "ton", label: "Ton Coin" },
+    { value: "ada", label: "Cardano" },
+    { value: "tron", label: "Tron" }
+  ];
+
 
   const cryptoOptions = [
     { value: "btc", label: "Bitcoin" },
@@ -88,63 +151,131 @@ function DepositModal({ onClose }) {
     { value: "bnb", label: "Binance Coin" }
   ];
 
-  const handleCopy = () => {
-    if (!address) return;
-    navigator.clipboard.writeText(address).then(() => {
+   const address = walletAddresses[coin];
+
+  // ✅ COPY FUNCTION (bulletproof)
+  const handleCopy = async (text) => {
+    if (!text) return;
+
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        textarea.style.position = "fixed";
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+      }
+
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    });
+    } catch (err) {
+      console.error("Copy failed:", err);
+    }
   };
 
   return (
-    <ModalTemplate title="Deposit Funds" onClose={onClose}>
-      <div className="space-y-4 text-sm">
-        <div>
-          <label className="block mb-1">Choose Crypto</label>
-          <Select onValueChange={setCoin}>
-            <SelectTrigger className="w-full bg-slate-800 text-white border border-slate-700">
-              <SelectValue placeholder="Select coin" />
-            </SelectTrigger>
-            <SelectContent>
+    <>
+      <ModalTemplate title="Deposit Funds" onClose={onClose}>
+        <div className="space-y-6 text-sm">
+
+          {/* Select Coin */}
+          <div>
+            <label className="block mb-2 text-xs uppercase tracking-wider text-muted-foreground">
+              Choose Crypto
+            </label>
+
+            <select
+              onChange={(e) => setCoin(e.target.value)}
+              className="w-full bg-card/70 backdrop-blur-md border border-border rounded-xl px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition"
+            >
+              <option value="">Select coin</option>
               {cryptoOptions.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
+                <option key={opt.value} value={opt.value}>
                   {opt.label}
-                </SelectItem>
+                </option>
               ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {coin && address && (
-          <div className="bg-slate-800 border border-slate-700 rounded p-4 text-sm space-y-2">
-            <p>
-              Send <strong>{cryptoOptions.find(o => o.value === coin)?.label || coin.toUpperCase()}</strong> to this wallet address:
-            </p>
-            <div className="relative bg-slate-700 p-2 pr-16 rounded font-mono break-all text-green-400">
-              {address}
-              <button
-                onClick={handleCopy}
-                className="absolute top-1/2 -translate-y-1/2 right-2 bg-blue-600 hover:bg-blue-700 text-white text-xs px-2 py-1 rounded"
-              >
-                {copied ? "Copied!" : "Copy"}
-              </button>
-            </div>
-            <p className="text-xs text-yellow-300">
-              Only send {cryptoOptions.find(o => o.value === coin)?.label || coin.toUpperCase()} on its supported network. Wrong deposits will not be recovered.
-            </p>
+            </select>
           </div>
-        )}
 
-        <button
-          onClick={onClose}
-          className="w-full bg-green-600 hover:bg-green-700 rounded py-2 font-semibold text-white transition"
-        >
-          Done
-        </button>
-      </div>
-    </ModalTemplate>
+          {/* Address Section */}
+          {coin && address && (
+            <div className="relative p-5 rounded-2xl border border-border bg-card/60 backdrop-blur-xl shadow-lg transition-all duration-300 animate-in fade-in slide-in-from-bottom-3">
+
+              {/* Soft Glow */}
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/10 to-indigo-500/10 blur-xl opacity-40 pointer-events-none" />
+
+              <div className="relative space-y-4">
+                <p className="font-medium text-foreground">
+                  Send{" "}
+                  <strong>
+                    {cryptoOptions.find(o => o.value === coin)?.label}
+                  </strong>{" "}
+                  to this address:
+                </p>
+
+                {/* Address Box */}
+                <div className="bg-background/50 border border-border rounded-xl p-3 font-mono text-xs break-all">
+                  {address}
+                </div>
+
+                {/* Buttons */}
+                <div className="flex gap-3 flex-wrap">
+
+                  <button
+                    onClick={() => handleCopy(address)}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all shadow ${copied
+                        ? "bg-emerald-600 text-white scale-105"
+                        : "bg-primary text-primary-foreground hover:opacity-90"
+                      }`}
+                  >
+                    <Copy size={14} />
+                    {copied ? "Copied ✓" : "Copy"}
+                  </button>
+
+                  <button
+                    onClick={() => setShowQr(true)}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium bg-slate-700 text-white hover:opacity-90 transition shadow"
+                  >
+                    <QrCode size={14} />
+                    Show QR
+                  </button>
+                </div>
+
+                <p className="text-xs text-muted-foreground">
+                  Only send this coin on its supported network. Wrong deposits
+                  cannot be recovered.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Done */}
+          <button
+            onClick={onClose}
+            className="w-full bg-gradient-to-r from-primary via-indigo-500 to-primary text-white py-2.5 rounded-xl font-semibold shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all duration-300"
+          >
+            Done
+          </button>
+        </div>
+      </ModalTemplate>
+
+      {/* ✅ QR MODAL CONNECTED PROPERLY */}
+      {showQr && address && (
+        <QRModal
+          address={address}
+          coinLabel={cryptoOptions.find(o => o.value === coin)?.label}
+          onClose={() => setShowQr(false)}
+        />
+      )}
+    </>
   );
 }
+
 function WithdrawalModal({ userId, onClose }) {
   const [assets, setAssets] = useState([]);
   const [selectedAsset, setSelectedAsset] = useState("");
