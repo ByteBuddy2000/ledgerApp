@@ -21,6 +21,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
+import { QrCode } from "lucide-react";
 
 // 🔧 Define action buttons (added Stocks)
 const actions = [
