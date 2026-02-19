@@ -5,12 +5,15 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowDownToLine,
-  Coins,
   Send,
   WalletCards,
   Briefcase,
   ShieldAlert,
   LineChart,
+  Copy,
+  X,
+  Download,
+  QrCode,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -21,7 +24,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { QrCode } from "lucide-react";
+
 
 // 🔧 Define action buttons (added Stocks)
 const actions = [
@@ -58,43 +61,65 @@ function ModalTemplate({ title, onClose, children }) {
   );
 }
 
-// QR display modal — clean, centered, with copy/download/close actions
+// ✅ QR MODAL
 function QRModal({ address, coinLabel, onClose }) {
   if (!address) return null;
+
   return (
-    <motion.div className="fixed inset-0 z-[11000] flex items-center justify-center" initial="hidden" animate="visible" exit="hidden" variants={overlayVariants}>
-      <motion.div className="absolute inset-0 bg-black/70 backdrop-blur-lg" onClick={onClose} />
-      <motion.div className="relative w-full max-w-sm bg-card rounded-xl text-foreground p-6 z-[11001] border border-border shadow-2xl" variants={modalVariants} transition={{ type: "spring", duration: 0.4 }}>
-        <div className="flex items-start justify-between mb-4">
+    <motion.div
+      className="fixed inset-0 z-[11000] flex items-center justify-center"
+      initial="hidden"
+      animate="visible"
+      exit="hidden"
+      variants={overlayVariants}
+    >
+      <motion.div
+        className="absolute inset-0 bg-black/80 backdrop-blur"
+        onClick={onClose}
+      />
+      <motion.div
+        className="relative w-full max-w-sm bg-slate-900 rounded-xl text-white p-6 z-[11001] border border-slate-700 shadow-2xl"
+        variants={modalVariants}
+      >
+        <div className="flex justify-between mb-4">
           <div>
-            <h3 className="text-lg font-semibold">{coinLabel || "Wallet"} QR</h3>
-            <p className="text-xs text-muted-foreground">Scan to pay or copy the wallet address</p>
+            <h3 className="font-semibold">{coinLabel} QR</h3>
+            <p className="text-xs text-slate-400">
+              Scan to pay or copy the address
+            </p>
           </div>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
+          <button onClick={onClose}>
             <X size={18} />
           </button>
         </div>
 
         <div className="flex flex-col items-center gap-4">
           <img
-            src={`https://api.qrserver.com/v1/create-qr-code/?size=360x360&data=${encodeURIComponent(address)}`}
+            src={`https://api.qrserver.com/v1/create-qr-code/?size=360x360&data=${encodeURIComponent(
+              address
+            )}`}
             alt="QR Code"
-            className="w-56 h-56 bg-white p-2 rounded-lg shadow"
+            className="w-56 h-56 bg-white p-2 rounded-lg"
           />
 
-          <div className="w-full break-words font-mono text-sm bg-card/50 p-2 rounded border border-border text-foreground text-center">{address}</div>
+          <div className="w-full break-all font-mono text-xs bg-slate-800 p-2 rounded border border-slate-700 text-center">
+            {address}
+          </div>
 
           <div className="flex w-full gap-3">
             <button
               onClick={() => navigator.clipboard.writeText(address)}
-              className="flex-1 inline-flex items-center justify-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded hover:bg-emerald-700 transition shadow-md"
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded text-xs flex items-center justify-center gap-2"
             >
               <Copy size={14} /> Copy
             </button>
+
             <a
-              href={`https://api.qrserver.com/v1/create-qr-code/?size=1024x1024&data=${encodeURIComponent(address)}`}
-              download={`qr-${(coinLabel || 'address').toLowerCase()}.png`}
-              className="inline-flex items-center justify-center gap-2 bg-slate-700 text-white px-4 py-2 rounded hover:opacity-90 transition shadow-md"
+              href={`https://api.qrserver.com/v1/create-qr-code/?size=1024x1024&data=${encodeURIComponent(
+                address
+              )}`}
+              download={`qr-${coinLabel}.png`}
+              className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded text-xs flex items-center justify-center gap-2"
             >
               <Download size={14} /> Download
             </a>
@@ -105,13 +130,13 @@ function QRModal({ address, coinLabel, onClose }) {
   );
 }
 
-
+// ✅ UPDATED DEPOSIT MODAL WITH QR SUPPORT
 function DepositModal({ onClose }) {
   const [coin, setCoin] = useState("");
   const [copied, setCopied] = useState(false);
   const [showQr, setShowQr] = useState(false);
 
-  // Make sure the keys match the cryptoOptions values
+  // ⚠️ ADDRESSED EXACTLY AS YOU PROVIDED
   const walletAddresses = {
     btc: "bc1q876w5vxqlpgzyyxzhxr24chalg5z74ztvp75dp",
     eth: "0xfE09a5D6Cd24f4E6172627011b85866DE3fBf447",
@@ -124,7 +149,6 @@ function DepositModal({ onClose }) {
     bnb: "0xfE09a5D6Cd24f4E6172627011b85866DE3fB447"
   };
 
-
   const cryptoOptions = [
     { value: "btc", label: "Bitcoin" },
     { value: "eth", label: "Ethereum" },
@@ -134,134 +158,96 @@ function DepositModal({ onClose }) {
     { value: "dogecoin", label: "Dogecoin" },
     { value: "xrp", label: "XRP" },
     { value: "xlm", label: "Stellar" },
-    { value: "bnb", label: "Binance Coin" }
+    { value: "bnb", label: "Binance Coin" },
   ];
 
-   const address = walletAddresses[coin];
+  const address = walletAddresses[coin];
 
-  // ✅ COPY FUNCTION (bulletproof)
-  const handleCopy = async (text) => {
-    if (!text) return;
-
-    try {
-      if (navigator?.clipboard?.writeText) {
-        await navigator.clipboard.writeText(text);
-      } else {
-        const textarea = document.createElement("textarea");
-        textarea.value = text;
-        textarea.style.position = "fixed";
-        document.body.appendChild(textarea);
-        textarea.focus();
-        textarea.select();
-        document.execCommand("copy");
-        document.body.removeChild(textarea);
-      }
-
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error("Copy failed:", err);
-    }
+  const handleCopy = async () => {
+    if (!address) return;
+    await navigator.clipboard.writeText(address);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
     <>
       <ModalTemplate title="Deposit Funds" onClose={onClose}>
-        <div className="space-y-6 text-sm">
-
-          {/* Select Coin */}
+        <div className="space-y-5 text-sm">
           <div>
-            <label className="block mb-2 text-xs uppercase tracking-wider text-muted-foreground">
-              Choose Crypto
-            </label>
-
-            <select
-              onChange={(e) => setCoin(e.target.value)}
-              className="w-full bg-card/70 backdrop-blur-md border border-border rounded-xl px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition"
-            >
-              <option value="">Select coin</option>
-              {cryptoOptions.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+            <label className="block mb-1">Choose Crypto</label>
+            <Select onValueChange={setCoin}>
+              <SelectTrigger className="w-full bg-slate-800 text-white border border-slate-700">
+                <SelectValue placeholder="Select coin" />
+              </SelectTrigger>
+              <SelectContent>
+                {cryptoOptions.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          {/* Address Section */}
           {coin && address && (
-            <div className="relative p-5 rounded-2xl border border-border bg-card/60 backdrop-blur-xl shadow-lg transition-all duration-300 animate-in fade-in slide-in-from-bottom-3">
+            <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 space-y-3">
+              <p>
+                Send{" "}
+                <strong>
+                  {cryptoOptions.find((o) => o.value === coin)?.label}
+                </strong>{" "}
+                to this wallet:
+              </p>
 
-              {/* Soft Glow */}
-              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/10 to-indigo-500/10 blur-xl opacity-40 pointer-events-none" />
-
-              <div className="relative space-y-4">
-                <p className="font-medium text-foreground">
-                  Send{" "}
-                  <strong>
-                    {cryptoOptions.find(o => o.value === coin)?.label}
-                  </strong>{" "}
-                  to this address:
-                </p>
-
-                {/* Address Box */}
-                <div className="bg-background/50 border border-border rounded-xl p-3 font-mono text-xs break-all">
-                  {address}
-                </div>
-
-                {/* Buttons */}
-                <div className="flex gap-3 flex-wrap">
-
-                  <button
-                    onClick={() => handleCopy(address)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all shadow ${copied
-                        ? "bg-emerald-600 text-white scale-105"
-                        : "bg-primary text-primary-foreground hover:opacity-90"
-                      }`}
-                  >
-                    <Copy size={14} />
-                    {copied ? "Copied ✓" : "Copy"}
-                  </button>
-
-                  <button
-                    onClick={() => setShowQr(true)}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium bg-slate-700 text-white hover:opacity-90 transition shadow"
-                  >
-                    <QrCode size={14} />
-                    Show QR
-                  </button>
-                </div>
-
-                <p className="text-xs text-muted-foreground">
-                  Only send this coin on its supported network. Wrong deposits
-                  cannot be recovered.
-                </p>
+              <div className="bg-slate-700 p-3 rounded font-mono break-all text-green-400 text-xs">
+                {address}
               </div>
+
+              <div className="flex gap-3 flex-wrap">
+                <button
+                  onClick={handleCopy}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-xs flex items-center gap-2"
+                >
+                  <Copy size={14} />
+                  {copied ? "Copied ✓" : "Copy"}
+                </button>
+
+                <button
+                  onClick={() => setShowQr(true)}
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-xs flex items-center gap-2"
+                >
+                  <QrCode size={14} />
+                  Show QR
+                </button>
+              </div>
+
+              <p className="text-xs text-yellow-400">
+                Only send this coin on its supported network. Wrong deposits
+                cannot be recovered.
+              </p>
             </div>
           )}
 
-          {/* Done */}
           <button
             onClick={onClose}
-            className="w-full bg-gradient-to-r from-primary via-indigo-500 to-primary text-white py-2.5 rounded-xl font-semibold shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all duration-300"
+            className="w-full bg-green-600 hover:bg-green-700 rounded py-2 font-semibold text-white"
           >
             Done
           </button>
         </div>
       </ModalTemplate>
 
-      {/* ✅ QR MODAL CONNECTED PROPERLY */}
       {showQr && address && (
         <QRModal
           address={address}
-          coinLabel={cryptoOptions.find(o => o.value === coin)?.label}
+          coinLabel={cryptoOptions.find((o) => o.value === coin)?.label}
           onClose={() => setShowQr(false)}
         />
       )}
     </>
   );
 }
-
 function WithdrawalModal({ userId, onClose }) {
   const [assets, setAssets] = useState([]);
   const [selectedAsset, setSelectedAsset] = useState("");
