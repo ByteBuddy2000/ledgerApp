@@ -61,13 +61,13 @@ function ModalTemplate({ title, onClose, children }) {
   );
 }
 
-// ✅ QR MODAL
+// ✅ UPDATED QR MODAL (Positioned Higher)
 function QRModal({ address, coinLabel, onClose }) {
   if (!address) return null;
 
   return (
     <motion.div
-      className="fixed inset-0 z-[11000] flex items-center justify-center pt-20"
+      className="fixed inset-0 z-[11000] flex items-start justify-center pt-20"
       initial="hidden"
       animate="visible"
       exit="hidden"
@@ -77,6 +77,7 @@ function QRModal({ address, coinLabel, onClose }) {
         className="absolute inset-0 bg-black/80 backdrop-blur"
         onClick={onClose}
       />
+
       <motion.div
         className="relative w-full max-w-sm bg-slate-900 rounded-xl text-white p-6 z-[11001] border border-slate-700 shadow-2xl"
         variants={modalVariants}
@@ -129,6 +130,7 @@ function QRModal({ address, coinLabel, onClose }) {
     </motion.div>
   );
 }
+
 
 // ✅ UPDATED DEPOSIT MODAL WITH QR SUPPORT
 function DepositModal({ onClose }) {
