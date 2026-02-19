@@ -49,7 +49,7 @@ export default async function DashboardPage() {
         {/* Main Layout */}
         <div className="flex flex-col gap-10 lg:grid lg:grid-cols-3 lg:gap-12">
           {/* Left Content */}
-          <div className="order-1 lg:col-span-2 space-y-10">
+          <div className="order-1 lg:col-span-2 space-y-20">
             {/* Carousel */}
             <div className="glass-card">
               <CardCarousel userIdOrEmail={userEmail} />
