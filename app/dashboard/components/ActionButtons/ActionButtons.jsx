@@ -44,7 +44,7 @@ const modalVariants = { hidden: { opacity: 0, y: 80 }, visible: { opacity: 1, y:
 // 🌟 Reusable Modal Container
 function ModalTemplate({ title, onClose, children }) {
   return (
-    <motion.div className="fixed inset-0 z-[99999] flex items-center justify-center" initial="hidden" animate="visible" exit="hidden" variants={overlayVariants}>
+    <motion.div className="fixed inset-0 z-[9999] flex items-center justify-center" initial="hidden" animate="visible" exit="hidden" variants={overlayVariants}>
       <motion.div className="absolute inset-0 bg-black/60 backdrop-blur" onClick={onClose} />
       <motion.div
         className="relative w-full max-w-md bg-slate-900 rounded-xl text-white p-6 z-10 border border-white/80 shadow-xl"
