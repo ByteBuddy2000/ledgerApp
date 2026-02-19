@@ -61,11 +61,12 @@ export default async function DashboardPage() {
     <ActionButtons userId={user?._id?.toString() || ""} />
   </div>
 
-  {/* Assets - Properly Pushed Down */}
-  <div className="glass-card mt-6 lg:mt-10">
-    <h2 className="text-xl font-bold mb-4">💰 Your Assets</h2>
-    <AssetSection />
-  </div>
+  {/* Assets - Strong Push Down */}
+<div className="glass-card mt-20 lg:mt-32">
+  <h2 className="text-xl font-bold mb-4">💰 Your Assets</h2>
+  <AssetSection />
+</div>
+
 </div>
 
 
