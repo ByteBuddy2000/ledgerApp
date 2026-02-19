@@ -61,13 +61,13 @@ function ModalTemplate({ title, onClose, children }) {
   );
 }
 
-// ✅ UPDATED QR MODAL (Positioned Higher)
+// ✅ FIXED QR MODAL (Proper Centering + Scroll Safe)
 function QRModal({ address, coinLabel, onClose }) {
   if (!address) return null;
 
   return (
     <motion.div
-      className="fixed inset-0 z-[11000] flex items-start justify-center pt-20"
+      className="fixed inset-0 z-[11000] flex items-center justify-center px-4"
       initial="hidden"
       animate="visible"
       exit="hidden"
@@ -79,8 +79,9 @@ function QRModal({ address, coinLabel, onClose }) {
       />
 
       <motion.div
-        className="relative w-full max-w-sm bg-slate-900 rounded-xl text-white p-6 z-[11001] border border-slate-700 shadow-2xl"
+        className="relative w-full max-w-sm bg-slate-900 rounded-xl text-white p-6 z-[11001] border border-slate-700 shadow-2xl max-h-[90vh] overflow-y-auto"
         variants={modalVariants}
+        transition={{ type: "spring", duration: 0.4 }}
       >
         <div className="flex justify-between mb-4">
           <div>
@@ -96,11 +97,11 @@ function QRModal({ address, coinLabel, onClose }) {
 
         <div className="flex flex-col items-center gap-4">
           <img
-            src={`https://api.qrserver.com/v1/create-qr-code/?size=360x360&data=${encodeURIComponent(
+            src={`https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${encodeURIComponent(
               address
             )}`}
             alt="QR Code"
-            className="w-56 h-56 bg-white p-2 rounded-lg"
+            className="w-48 h-48 bg-white p-2 rounded-lg"
           />
 
           <div className="w-full break-all font-mono text-xs bg-slate-800 p-2 rounded border border-slate-700 text-center">
@@ -130,6 +131,7 @@ function QRModal({ address, coinLabel, onClose }) {
     </motion.div>
   );
 }
+
 
 
 // ✅ UPDATED DEPOSIT MODAL WITH QR SUPPORT
