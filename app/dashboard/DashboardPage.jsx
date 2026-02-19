@@ -16,7 +16,7 @@ export default async function DashboardPage() {
   const user = userEmail ? await User.findOne({ email: userEmail }).lean() : null;
 
   return (
-    <div className="min-h-screen pb-12 bg-gradient-to-bl from-[#05011aff] via-[ #000000] to-[#001F3F] text-white relative overflow-hidden">
+    <div className="min-h-screen pb-12 bg-gradient-to-bl from-[#05011aff] via-[#000000] to-[#001F3F] text-white relative">
       {/* Premium Blue Glow & Gradient Overlays */}
       <div className="absolute inset-0 pointer-events-none z-0">
         {/* Soft aurora-style gradients */}
