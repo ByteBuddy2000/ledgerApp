@@ -1,7 +1,7 @@
 "use client";
 import { useEffect } from "react";
 
-const Tawk = () => {
+const TawkChat = () => {
   useEffect(() => {
     window.Tawk_API = window.Tawk_API || {};
     window.Tawk_LoadStart = new Date();
@@ -20,4 +20,4 @@ const Tawk = () => {
   return null;
 };
 
-export default Tawk;
+export default TawkChat;
