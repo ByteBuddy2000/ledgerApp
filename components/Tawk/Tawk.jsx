@@ -17,7 +17,7 @@ const Tawk = () => {
     })();
   }, []);
 
-  return null; // Tawk injects into <body>, not here
+  return null;
 };
 
 export default Tawk;
