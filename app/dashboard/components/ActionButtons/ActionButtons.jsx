@@ -30,7 +30,7 @@ import {
 const actions = [
   { label: "Deposit", modal: "deposit", icon: <Send size={20} /> },
   { label: "Withdrawal", modal: "withdrawal", icon: <ArrowDownToLine size={20} /> },
-  // { label: "Medbed", modal: null, icon: <ShieldAlert size={20} /> },
+   { label: "Medbed", modal: null, icon: <ShieldAlert size={20} /> },
   { label: "Buy", modal: null, icon: <WalletCards size={20} /> },
   { label: "Stocks", modal: null, icon: <LineChart size={20} /> },
   { label: "401k", modal: null, icon: <Briefcase size={20} /> },
@@ -266,7 +266,7 @@ function WithdrawalModal({ userId, onClose }) {
         const data = await res.json();
         console.log("Fetched assets:", data.assets); // Add this line
         if (res.ok) setAssets(data.assets || []);
-        else console.error("Failed to fetch assets:", data.error || res.statusText);
+        else console.error("Failed to fetch assets:", data.error || res.statausText);
       } catch (err) {
         console.error("Server error while fetching assets", err);
       }
