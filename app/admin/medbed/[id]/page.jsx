@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2, CheckCircle, XCircle } from "lucide-react";
+import { ArrowLeft, Loader2, CheckCircle, XCircle, CircleDot } from "lucide-react";
 
 export default function MedbedDetailPage() {
   const { id } = useParams();
@@ -60,80 +60,70 @@ export default function MedbedDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[#0d0f1a] text-gray-300">
-        <Loader2 className="w-10 h-10 animate-spin" />
-        <span className="ml-2">Loading details…</span>
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-950 via-gray-900 to-black text-gray-300">
+        <Loader2 className="w-12 h-12 animate-spin" />
+        <span className="ml-3">Loading details…</span>
       </div>
     );
   }
 
   if (!registration) {
     return (
-      <div className="p-6 text-center text-gray-400 bg-[#0d0f1a] min-h-screen">
-        <p>No registration found.</p>
-        <button
-          onClick={() => router.push("/admin/medbed")}
-          className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded text-white"
-        >
-          Back
-        </button>
+      <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-black text-gray-300 p-6">
+        <div className="mx-auto max-w-lg rounded-xl border border-slate-700 bg-slate-900 p-8 text-center">
+          <p>No registration found.</p>
+          <button
+            onClick={() => router.push("/admin/medbed")}
+            className="mt-4 rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-500"
+          >
+            Back to list
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0d0f1a] text-gray-200 p-6">
-      <button
-        onClick={() => router.back()}
-        className="flex items-center gap-2 text-sm text-gray-400 hover:text-gray-200 mb-6"
-      >
-        <ArrowLeft className="w-4 h-4" /> Back
-      </button>
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-black p-6 text-white">
+      <div className="mx-auto max-w-3xl space-y-4">
+        <button
+          onClick={() => router.back()}
+          className="inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-sm text-gray-300 hover:bg-slate-800"
+        >
+          <ArrowLeft className="w-4 h-4" /> Back
+        </button>
 
-      <div className="max-w-3xl mx-auto bg-[#111426] border border-gray-700 rounded-xl shadow-md p-6">
-        <h1 className="text-2xl font-semibold mb-4 text-white">
-          Registration Details
-        </h1>
+        <div className="rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-xl">
+          <div className="flex items-center justify-between mb-4 gap-3">
+            <div>
+              <h1 className="text-2xl font-bold text-blue-300">Registration Details</h1>
+              <p className="text-sm text-gray-400">ID: {registration._id}</p>
+            </div>
+            <div className="inline-flex items-center gap-2">
+              <StatusBadge status={registration.status} />
+              <StatusBadge status={registration.adminApproved ? "approved" : "not-approved"} label="Admin" />
+            </div>
+          </div>
 
-        <div className="grid sm:grid-cols-2 gap-4 text-sm">
-          <Info label="Full Name" value={registration.name} />
-          <Info label="Email" value={registration.email} />
-          <Info label="Phone" value={registration.phone} />
-          <Info label="Color" value={registration.color} />
-          <Info label="Amount (XRP)" value={registration.amountXrp ?? "-"} />
-          <Info label="Status" value={registration.status} />
-          <Info label='Address' value={registration.address ?? "-"} />
-          <Info
-            label="Admin Approved"
-            value={registration.adminApproved ? "Yes" : "No"}
-          />
-          <Info
-            label="Date Registered"
-            value={new Date(registration.createdAt).toLocaleString()}
-          />
-          {registration.txHash && (
-            <Info label="Transaction Hash" value={registration.txHash} />
-          )}
-        </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <Info label="Name" value={registration.name} />
+            <Info label="Email" value={registration.email} />
+            <Info label="Phone" value={registration.phone} />
+            <Info label="Bed color" value={registration.color} />
+            <Info label="Amount (XRP)" value={registration.amountXrp ?? "-"} />
+            <Info label="Date" value={new Date(registration.createdAt).toLocaleString()} />
+            <Info label="Address" value={registration.address} />
+            <Info label="TX Hash" value={registration.txHash || "--"} />
+          </div>
 
-        <div className="mt-8 flex flex-wrap gap-3">
-          <button
-            disabled={processing}
-            onClick={() => handleAction("approve")}
-            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded disabled:opacity-50"
-          >
-            <CheckCircle className="w-4 h-4" />
-            {processing ? "Processing..." : "Approve"}
-          </button>
-
-          <button
-            disabled={processing}
-            onClick={() => handleAction("reject")}
-            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded disabled:opacity-50"
-          >
-            <XCircle className="w-4 h-4" />
-            {processing ? "Processing..." : "Reject"}
-          </button>
+          <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <ActionButton onClick={() => handleAction("approve")} processing={processing} color="emerald">
+              <CheckCircle className="mr-2 h-4 w-4" /> Approve
+            </ActionButton>
+            <ActionButton onClick={() => handleAction("reject")} processing={processing} color="rose">
+              <XCircle className="mr-2 h-4 w-4" /> Reject
+            </ActionButton>
+          </div>
         </div>
       </div>
     </div>
@@ -142,13 +132,41 @@ export default function MedbedDetailPage() {
 
 function Info({ label, value }) {
   return (
-    <div className="flex flex-col">
-      <span className="text-gray-400 text-xs uppercase tracking-wider">
-        {label}
-      </span>
-      <span className="text-white text-sm font-medium break-words">
-        {value ?? "-"}
-      </span>
+    <div className="rounded-lg border border-slate-700 bg-[#12162f] p-3">
+      <p className="text-xs text-gray-400 uppercase">{label}</p>
+      <p className="mt-1 break-words text-base font-semibold text-white">{value || "-"}</p>
     </div>
+  );
+}
+
+function StatusBadge({ status, label }) {
+  const map = {
+    paid: "bg-emerald-500/20 text-emerald-200 border border-emerald-400",
+    pending_payment: "bg-amber-500/20 text-amber-200 border border-amber-400",
+    cancelled: "bg-rose-500/20 text-rose-200 border border-rose-400",
+    approved: "bg-emerald-500/20 text-emerald-200 border border-emerald-400",
+    "not-approved": "bg-slate-700 text-slate-300 border border-slate-600",
+  };
+  return (
+    <div className={`rounded-full px-3 py-1 text-xs font-semibold ${map[status] || map["not-approved"]}`}>
+      {label ? label : status.replace("_", " ")}
+    </div>
+  );
+}
+
+function ActionButton({ children, onClick, processing, color }) {
+  const classNames = {
+    emerald: "bg-emerald-600 hover:bg-emerald-500",
+    rose: "bg-rose-600 hover:bg-rose-500",
+  };
+
+  return (
+    <button
+      onClick={onClick}
+      disabled={processing}
+      className={`inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold text-white ${classNames[color]} disabled:opacity-50`}
+    >
+      {processing ? <span className="flex items-center gap-2">...Processing</span> : children}
+    </button>
   );
 }
