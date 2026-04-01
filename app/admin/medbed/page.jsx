@@ -3,7 +3,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Bed, Loader2 } from "lucide-react";
+import { Bed, ChevronLeft, Loader2 } from "lucide-react";
+import Link from "next/link";
 
 const STATUS_FILTERS = ["all", "pending_payment", "paid", "cancelled"];
 const friendly = { pending_payment: "Pending", paid: "Paid", cancelled: "Cancelled" };
@@ -77,10 +78,42 @@ export default function AdminMedbedPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-black text-gray-200 p-6">
       <div className="mx-auto max-w-6xl">
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-white">
-            <Bed className="h-5 w-5 text-blue-400" />
-            <h1 className="text-2xl font-semibold">Medbed Registrations</h1>
+        {/* Header */}
+        <div className="mb-6 sm:mb-8">
+          <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md px-4 py-4 sm:px-6 sm:py-5 shadow-lg">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+              {/* Left Section */}
+              <div className="flex items-center gap-3">
+                <Link href="/admin">
+                  <button className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 text-white transition-all hover:bg-white/10 hover:scale-105">
+                    <ChevronLeft className="h-5 w-5" />
+                  </button>
+                </Link>
+
+                <div className="flex items-center gap-2 text-white">
+                  <div className="rounded-xl bg-blue-500/10 p-2">
+                    <Bed className="h-5 w-5 text-blue-400" />
+                  </div>
+                  <div>
+                    <h1 className="text-lg sm:text-xl md:text-2xl font-semibold tracking-tight">
+                      Medbed Registrations
+                    </h1>
+                    <p className="text-xs sm:text-sm text-white/60">
+                      Manage all submitted registrations
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Return Link */}
+              {/* <Link
+                href="/admin"
+                className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-violet-600 px-4 py-2 text-sm font-medium text-white shadow-md transition-all hover:scale-105"
+              >
+                Return to Admin
+              </Link> */}
+            </div>
           </div>
         </div>
 
@@ -96,11 +129,10 @@ export default function AdminMedbedPage() {
             <button
               key={status}
               onClick={() => setActiveFilter(status)}
-              className={`rounded-lg border px-3 py-1.5 text-xs font-semibold uppercase transition ${
-                activeFilter === status
+              className={`rounded-lg border px-3 py-1.5 text-xs font-semibold uppercase transition ${activeFilter === status
                   ? "bg-blue-600 text-white border-blue-500"
                   : "bg-slate-800 text-gray-300 border-slate-700 hover:bg-slate-700"
-              }`}
+                }`}
             >
               {status === "all" ? "All" : friendly[status] || status}
             </button>
