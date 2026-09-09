@@ -42,9 +42,9 @@ export const metadata: Metadata = {
   },
 
   icons: {
-    icon: "/qfs-logo.jpeg",
-    shortcut: "/qfs-logo.jpeg",
-    apple: "/qfs-logo.jpeg",
+    icon: "/tiv-logo.png",
+    shortcut: "/tiv-logo.png",
+    apple: "/tiv-logo.png",
   },
 };
 
