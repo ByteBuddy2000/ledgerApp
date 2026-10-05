@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { connectToDB } from "@/lib/connectDB";
 import MedbedRegistration from "@/models/MedbedRegistration";
+import PaymentMethod from "@/models/PaymentMethod";
 
 // Expected: process.env.XRP_RECEIVER_ADDRESS (the address to receive XRP payments)
 const TARGET_USD = 10000;
@@ -14,8 +15,21 @@ export async function POST(request) {
       return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 });
     }
 
-    // Connect to DB
     await connectToDB();
+
+    const paymentMethod = await PaymentMethod.findOne({
+      purpose: "medbed",
+      methodType: "crypto",
+      asset: "XRP",
+      enabled: true,
+    }).sort({ sortOrder: 1, name: 1 });
+
+    if (!paymentMethod) {
+      return NextResponse.json(
+        { success: false, error: "Medbed payment is not currently configured." },
+        { status: 503 }
+      );
+    }
 
     // Fetch XRP price (USD) from CoinGecko to compute amount in XRP
     // NOTE: This external call may fail offline; handle errors gracefully
@@ -40,7 +54,7 @@ export async function POST(request) {
     }
 
     const amountXrp = Number((TARGET_USD / priceUsd).toFixed(6));
-    const receiverAddress = process.env.XRP_RECEIVER_ADDRESS || "";
+    const receiverAddress = paymentMethod.destination;
 
     // Create registration record with pending status
     const doc = await MedbedRegistration.create({
@@ -52,6 +66,8 @@ export async function POST(request) {
       feeUsd: TARGET_USD,
       amountXrp,
       receiverAddress,
+      paymentMethodName: paymentMethod.name,
+      paymentNetwork: paymentMethod.network,
       status: "pending_payment",
     });
 
@@ -61,6 +77,9 @@ export async function POST(request) {
       registrationId: doc._id,
       amountXrp,
       receiverAddress,
+      paymentMethodName: paymentMethod.name,
+      paymentNetwork: paymentMethod.network,
+      paymentInstructions: paymentMethod.instructions,
       message: "Pay the specified XRP amount to the receiver address and then confirm with the transaction hash.",
     });
   } catch (err) {

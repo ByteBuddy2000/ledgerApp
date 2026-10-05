@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -12,16 +12,29 @@ export default function MedbedSignupPage() {
   const [address, setAddress] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [color, setColor] = useState("white");
+  const [paymentMethod, setPaymentMethod] = useState(null);
+  const [loadingPaymentMethod, setLoadingPaymentMethod] = useState(true);
   const [paymentInfo, setPaymentInfo] = useState(null);
   const [txHash, setTxHash] = useState("");
   const [confirming, setConfirming] = useState(false);
 
   const fee = 10000; // registration fee in USD
 
-  // Default receiver address can be provided via NEXT_PUBLIC_XRP_RECEIVER_ADDRESS
-  const RECEIVER_ADDRESS =
-    process.env.NEXT_PUBLIC_XRP_RECEIVER_ADDRESS ||
-    "rp5PMThCE9FtANy7ULtN4X43fNf7oXW6mt"; // replace with your real address
+  useEffect(() => {
+    async function loadPaymentMethod() {
+      try {
+        const response = await fetch("/api/payment-methods?purpose=medbed");
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Unable to load payment method.");
+        setPaymentMethod(data.methods?.[0] || null);
+      } catch {
+        setPaymentMethod(null);
+      } finally {
+        setLoadingPaymentMethod(false);
+      }
+    }
+    loadPaymentMethod();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -38,11 +51,13 @@ export default function MedbedSignupPage() {
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        // Use API receiverAddress if provided, otherwise fall back to env/default
         setPaymentInfo({
           registrationId: data.registrationId,
           amountXrp: data.amountXrp,
-          receiverAddress: data.receiverAddress || RECEIVER_ADDRESS,
+          receiverAddress: data.receiverAddress,
+          paymentMethodName: data.paymentMethodName,
+          paymentNetwork: data.paymentNetwork,
+          paymentInstructions: data.paymentInstructions,
         });
         toast.success("Registration saved. Please complete XRP payment to finish.");
       } else {
@@ -99,8 +114,8 @@ export default function MedbedSignupPage() {
               <span className="text-sm text-gray-300">Registration fee</span>
               <div className="text-lg font-semibold">${fee.toLocaleString()}</div>
             </div>
-            <button type="submit" disabled={submitting} className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded text-white font-semibold">
-              {submitting ? "Submitting..." : "Submit & Pay"}
+            <button type="submit" disabled={submitting || loadingPaymentMethod || !paymentMethod} className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded text-white font-semibold disabled:cursor-not-allowed disabled:opacity-50">
+              {submitting ? "Submitting..." : loadingPaymentMethod ? "Loading payment..." : !paymentMethod ? "Payment unavailable" : "Submit & Pay"}
             </button>
           </div>
         </form>
@@ -109,8 +124,9 @@ export default function MedbedSignupPage() {
         {paymentInfo && (
           <div className="mt-6 p-4 bg-gray-800 border border-gray-700 rounded">
             <h2 className="text-lg font-semibold mb-2">Payment details</h2>
-            <p className="text-sm text-gray-300">Send <strong>{paymentInfo.amountXrp} XRP</strong> to:</p>
+            <p className="text-sm text-gray-300">Send <strong>{paymentInfo.amountXrp} XRP</strong> using {paymentInfo.paymentMethodName}{paymentInfo.paymentNetwork ? ` (${paymentInfo.paymentNetwork})` : ""} to:</p>
             <div className="break-words bg-gray-900 p-2 rounded my-2">{paymentInfo.receiverAddress || "(No receiver address configured)"}</div>
+            {paymentInfo.paymentInstructions && <p className="mb-2 text-sm text-gray-300 whitespace-pre-wrap">{paymentInfo.paymentInstructions}</p>}
             <p className="text-xs text-gray-400 mb-2">After you send the payment, paste the transaction hash below and click Confirm.</p>
 
             <div className="space-y-2">
@@ -150,12 +166,14 @@ export default function MedbedSignupPage() {
           </div>
         )}
 
-        {/* Show default receiver address when payment info not yet created */}
-        {!paymentInfo && (
+        {!paymentInfo && loadingPaymentMethod && <div className="mt-4 text-sm text-gray-400">Loading payment method...</div>}
+        {!paymentInfo && !loadingPaymentMethod && paymentMethod && (
           <div className="mt-4 text-sm text-gray-400">
-            Payment will be sent to: <span className="break-words text-gray-200">{RECEIVER_ADDRESS}</span>
+            Payment will be sent to {paymentMethod.name}{paymentMethod.network ? ` (${paymentMethod.network})` : ""}: <span className="break-words text-gray-200">{paymentMethod.destination}</span>
+            {paymentMethod.instructions && <p className="mt-2 whitespace-pre-wrap">{paymentMethod.instructions}</p>}
           </div>
         )}
+        {!paymentInfo && !loadingPaymentMethod && !paymentMethod && <p className="mt-4 text-sm text-amber-300">Payment is temporarily unavailable. Please contact support.</p>}
       </div>
     </div>
   );

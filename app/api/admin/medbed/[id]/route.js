@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server";
 import { connectToDB } from "@/lib/connectDB";
 import MedbedRegistration from "@/models/MedbedRegistration";
+import { requireAdmin } from "@/lib/requireAdmin";
 
 export async function GET(req, context) {
   try {
+    const access = await requireAdmin();
+    if (!access.authorized) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: access.status });
+    }
+
     const params = await context.params; // ✅ await params
     const { id } = params;
 

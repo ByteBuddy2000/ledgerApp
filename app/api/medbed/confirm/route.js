@@ -15,14 +15,16 @@ export async function POST(request) {
 
     const reg = await MedbedRegistration.findById(registrationId);
     if (!reg) return NextResponse.json({ success: false, error: "Registration not found" }, { status: 404 });
+    if (reg.status === "paid") {
+      return NextResponse.json({ success: false, error: "Payment has already been verified." }, { status: 409 });
+    }
 
-    // Mark as paid. In a real app we'd verify this txHash on the XRP ledger first.
-    reg.status = "paid";
-    reg.txHash = txHash;
-    reg.paidAt = new Date();
+    // A submitted hash is a claim only; an admin must verify it before marking payment paid.
+    reg.status = "pending_payment";
+    reg.txHash = txHash.trim();
     await reg.save();
 
-    return NextResponse.json({ success: true, message: "Payment confirmed", registration: reg });
+    return NextResponse.json({ success: true, message: "Transaction submitted for verification." });
   } catch (err) {
     console.error("/api/medbed/confirm error", err);
     return NextResponse.json({ success: false, error: err.message || "Server error" }, { status: 500 });
