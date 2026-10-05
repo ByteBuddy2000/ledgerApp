@@ -1,5 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+
 import { Toaster } from "@/components/ui/sonner";
 import TawkChat from "@/components/Tawk/Tawk";
 
@@ -16,14 +17,48 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "Authorized QFS Vault App",
   description: "QFS Vault App authorised by Flare Network",
+
+  openGraph: {
+    title: "Authorized QFS Vault App",
+    description: "QFS Vault App authorised by Flare Network",
+    type: "website",
+    images: [
+      {
+        url: "/qfs-logo.jpeg",
+        width: 1200,
+        height: 630,
+        alt: "Authorized QFS Vault App",
+      },
+    ],
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "Authorized QFS Vault App",
+    description: "QFS Vault App authorised by Flare Network",
+    images: ["/qfs-logo.jpeg"],
+  },
+
+  icons: {
+    icon: "/tiv-logo.png",
+    shortcut: "/tiv-logo.png",
+    apple: "/tiv-logo.png",
+  },
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`} cz-shortcut-listen="true">
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
         {children}
-        <Toaster richColors position="top-center" /> {/* ✅ Sonner Toaster here */}
+
+        <Toaster
+          richColors
+          position="top-center"
+        />
+
         <TawkChat />
       </body>
     </html>
