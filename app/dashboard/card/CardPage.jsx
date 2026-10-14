@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,20 +8,34 @@ import { Copy, ChevronLeft, ArrowDown } from "lucide-react";
 import Link from "next/link";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 
-const coinOptions = [
-	{ label: "XRP", value: "XRP", slug: "ripple", address: "rp5PMThCE9FtANy7ULtN4X43fNf7oXW6mt" },
-];
-
 const CardPage = ({ firstName = "", lastName = "", email = "", phone = "" }) => {
 	const [copied, setCopied] = useState(false);
-	const [selectedCoin, setSelectedCoin] = useState(coinOptions[0].value); // Default to XRP
+	const [paymentMethods, setPaymentMethods] = useState([]);
+	const [selectedMethodId, setSelectedMethodId] = useState("");
 	const fullName = `${firstName} ${lastName}`.trim() || "Mike";
 
-	const depositAddress =
-		coinOptions.find((c) => c.value === selectedCoin)?.address ||
-		coinOptions[0].address;
+	const selectedMethod = paymentMethods.find((method) => method._id === selectedMethodId);
+	const selectedCoin = selectedMethod?.asset || selectedMethod?.name || "";
+	const depositAddress = selectedMethod?.destination || "";
+
+	useEffect(() => {
+		async function fetchPaymentMethods() {
+			try {
+				const response = await fetch("/api/payment-methods?purpose=card");
+				const data = await response.json();
+				if (!response.ok) throw new Error(data.error || "Unable to load payment methods.");
+				const methods = data.methods || [];
+				setPaymentMethods(methods);
+				setSelectedMethodId(methods[0]?._id || "");
+			} catch {
+				setPaymentMethods([]);
+			}
+		}
+		fetchPaymentMethods();
+	}, []);
 
 	const handleCopy = () => {
+		if (!depositAddress) return;
 		navigator.clipboard.writeText(depositAddress);
 		setCopied(true);
 		setTimeout(() => setCopied(false), 1500);
@@ -50,20 +64,22 @@ const CardPage = ({ firstName = "", lastName = "", email = "", phone = "" }) => 
 				{/* Deposit Asset */}
 				<div className="flex items-center justify-between bg-slate-900 rounded-xl shadow-lg p-5 mb-8 border border-slate-800">
 					<span className="font-medium text-blue-300 text-lg">Deposit Asset</span>
-					<Select value={selectedCoin} onValueChange={setSelectedCoin} disabled>
+					<Select value={selectedMethodId} onValueChange={setSelectedMethodId} disabled={paymentMethods.length === 0}>
 						<SelectTrigger className="bg-blue-600 text-white rounded-lg text-sm font-bold border-none flex items-center justify-between shadow px-4 py-2">
-							<SelectValue placeholder="Select coin" />
+							<SelectValue placeholder="Select payment method" />
 							<ArrowDown className="text-white" />
 						</SelectTrigger>
 						<SelectContent>
-							{coinOptions.map((coin) => (
-								<SelectItem key={coin.value} value={coin.value}>
-									{coin.label}
+							{paymentMethods.map((method) => (
+								<SelectItem key={method._id} value={method._id}>
+									{method.name}
 								</SelectItem>
 							))}
 						</SelectContent>
 					</Select>
 				</div>
+				{selectedMethod?.instructions && <p className="-mt-6 mb-8 text-sm text-slate-300">{selectedMethod.instructions}</p>}
+				{!selectedMethod && <p className="-mt-6 mb-8 text-sm text-slate-400">No card deposit methods are currently available.</p>}
 
 				{/* Card Preview */}
 				<div className="w-full flex justify-center mb-8">
@@ -244,6 +260,7 @@ const CardPage = ({ firstName = "", lastName = "", email = "", phone = "" }) => 
 							<Button
 								type="submit"
 								className="w-full bg-gradient-to-r from-blue-600 to-violet-600 text-white font-semibold py-2 rounded-lg shadow hover:from-blue-700 hover:to-violet-700 transition"
+											disabled={!selectedMethod}
 							>
 								I have paid
 							</Button>

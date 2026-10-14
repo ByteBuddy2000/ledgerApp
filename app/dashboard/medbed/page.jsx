@@ -21,10 +21,6 @@ export default function MedbedSignupPage() {
 
   const fee = 10000; // registration fee in USD
 
-  const RECEIVER_ADDRESS =
-    process.env.NEXT_PUBLIC_XRP_RECEIVER_ADDRESS ||
-    "rp5PMThCE9FtANy7ULtN4X43fNf7oXW6mt";
-
   const handleCopyAddress = async () => {
     try {
       await navigator.clipboard.writeText(paymentInfo.receiverAddress);
@@ -56,7 +52,10 @@ export default function MedbedSignupPage() {
         setPaymentInfo({
           registrationId: data.registrationId,
           amountXrp: data.amountXrp,
-          receiverAddress: data.receiverAddress || RECEIVER_ADDRESS,
+          receiverAddress: data.receiverAddress,
+          paymentMethodName: data.paymentMethodName,
+          paymentNetwork: data.paymentNetwork,
+          paymentInstructions: data.paymentInstructions,
         });
         setStep(2);
         toast.success("Registration saved. Complete XRP payment to finish.");
@@ -187,7 +186,7 @@ export default function MedbedSignupPage() {
                 <StatCard label="Status" value={step === 3 ? "confirmed" : "awaiting payment"} />
               </div>
 
-              <div className="mt-3 text-sm text-gray-300">Send XRP to the address below and verify with transaction hash.</div>
+              <div className="mt-3 text-sm text-gray-300">Send XRP using {paymentInfo.paymentMethodName}{paymentInfo.paymentNetwork ? ` (${paymentInfo.paymentNetwork})` : ""} to the address below and verify with transaction hash.</div>
               <div className="mt-2 flex items-center gap-2 rounded-lg bg-slate-900 px-3 py-2 border border-slate-700">
                 <div className="break-words text-sm text-white">{paymentInfo.receiverAddress}</div>
                 <button
@@ -198,6 +197,7 @@ export default function MedbedSignupPage() {
                   <Copy className="h-4 w-4" />
                 </button>
               </div>
+              {paymentInfo.paymentInstructions && <p className="mt-2 whitespace-pre-wrap text-sm text-gray-300">{paymentInfo.paymentInstructions}</p>}
               {copyStatus && <div className="text-xs text-emerald-300 mt-1">{copyStatus}</div>}
 
               <div className="mt-4 space-y-3">
