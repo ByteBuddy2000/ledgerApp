@@ -139,16 +139,33 @@ function DepositModal({ onClose }) {
   const [coin, setCoin] = useState("");
   const [copied, setCopied] = useState(false);
   const [showQr, setShowQr] = useState(false);
-  const [methods, setMethods] = useState([]);
-  const selectedMethod = methods.find((method) => method._id === coin);
-  const address = selectedMethod?.destination;
 
-  useEffect(() => {
-    fetch("/api/payment-methods?purpose=deposit")
-      .then((response) => response.json())
-      .then((data) => setMethods(data.methods || []))
-      .catch(() => setMethods([]));
-  }, []);
+  // ⚠️ ADDRESSED EXACTLY AS YOU PROVIDED
+  const walletAddresses = {
+    btc: "bc1q876w5vxqlpgzyyxzhxr24chalg5z74ztvp75dp",
+    eth: "0xfE09a5D6Cd24f4E6172627011b85866DE3fBf447",
+    sol: "GtVu1NbCoowWyfknjrWe9ajL4BDF74MjkcitryVpa3bh",
+    usdt: "TRr2kB36MdKnXanodWFyp5D9zub1tLxpCm", // USDT (TRC20)
+    usdterc20: "0xfE09a5D6Cd24f4E6172627011b85866DE3fBf447", // USDT (ERC20)
+    dogecoin: "DFFG4fyPghR6njzwKGtFMWk37uiN3GDqh3",
+    xrp: "rp5PMThCE9FtANy7ULtN4X43fNf7oXW6mt",
+    xlm: "GD33L52SYG7NFBQQYGHBU4JIKSAK2M7AMXWXHT5KUVW6ZA5PN5HKMWNO",
+    bnb: "0xfE09a5D6Cd24f4E6172627011b85866DE3fB447"
+  };
+
+  const cryptoOptions = [
+    { value: "btc", label: "Bitcoin" },
+    { value: "eth", label: "Ethereum" },
+    { value: "sol", label: "Solana" },
+    { value: "usdt", label: "USDT (TRC20)" },
+    { value: "usdterc20", label: "USDT (ERC20)" },
+    { value: "dogecoin", label: "Dogecoin" },
+    { value: "xrp", label: "XRP" },
+    { value: "xlm", label: "Stellar" },
+    { value: "bnb", label: "Binance Coin" },
+  ];
+
+  const address = walletAddresses[coin];
 
   const handleCopy = async () => {
     if (!address) return;
@@ -162,36 +179,34 @@ function DepositModal({ onClose }) {
       <ModalTemplate title="Deposit Funds" onClose={onClose}>
         <div className="space-y-6 text-sm">
           <div>
-            <label className="block mb-1">Choose payment method</label>
+            <label className="block mb-1">Choose Crypto</label>
             <Select onValueChange={setCoin}>
               <SelectTrigger className="w-full bg-slate-800 text-white border border-slate-700">
-                <SelectValue placeholder="Select method" />
+                <SelectValue placeholder="Select coin" />
               </SelectTrigger>
               <SelectContent>
-                {methods.map((method) => (
-                  <SelectItem key={method._id} value={method._id}>
-                    {method.name}
+                {cryptoOptions.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
-          {!coin && methods.length === 0 && <p className="text-sm text-gray-400">No deposit methods are currently available.</p>}
-
-          {selectedMethod && address && (
+          {coin && address && (
             <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 space-y-3">
               <p>
                 Send{" "}
-                <strong>{selectedMethod.name}</strong>{" "}
-                to this destination:
+                <strong>
+                  {cryptoOptions.find((o) => o.value === coin)?.label}
+                </strong>{" "}
+                to this wallet:
               </p>
 
               <div className="bg-slate-700 p-3 rounded font-mono break-all text-green-400 text-xs">
                 {address}
               </div>
-
-              {selectedMethod.instructions && <p className="whitespace-pre-wrap text-xs text-gray-300">{selectedMethod.instructions}</p>}
 
               <div className="flex gap-3 flex-wrap">
                 <button
@@ -202,13 +217,19 @@ function DepositModal({ onClose }) {
                   {copied ? "Copied ✓" : "Copy"}
                 </button>
 
-                {selectedMethod.methodType === "crypto" && <button
+                <button
                   onClick={() => setShowQr(true)}
                   className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-xs flex items-center gap-2"
-                ><QrCode size={14} />Show QR</button>}
+                >
+                  <QrCode size={14} />
+                  Show QR
+                </button>
               </div>
 
-              {selectedMethod.methodType === "crypto" && <p className="text-xs text-yellow-400">Only send this asset on its specified network. Wrong deposits may not be recoverable.</p>}
+              <p className="text-xs text-yellow-400">
+                Only send this coin on its supported network. Wrong deposits
+                cannot be recovered.
+              </p>
             </div>
           )}
 
@@ -224,7 +245,7 @@ function DepositModal({ onClose }) {
       {showQr && address && (
         <QRModal
           address={address}
-          coinLabel={selectedMethod?.name}
+          coinLabel={cryptoOptions.find((o) => o.value === coin)?.label}
           onClose={() => setShowQr(false)}
         />
       )}

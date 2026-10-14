@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import {connectToDB}  from "@/lib/connectDB"
 import MedbedRegistration from "@/models/MedbedRegistration";
-import { requireAdmin } from "@/lib/requireAdmin";
 
 /**
  * GET /api/admin/medbed
@@ -9,11 +8,6 @@ import { requireAdmin } from "@/lib/requireAdmin";
  */
 export async function GET() {
   try {
-    const access = await requireAdmin();
-    if (!access.authorized) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: access.status });
-    }
-
     await connectToDB();
     const regs = await MedbedRegistration.find().sort({ createdAt: -1 });
     return NextResponse.json({ success: true, registrations: regs }, { status: 200 });
@@ -30,11 +24,6 @@ export async function GET() {
  */
 export async function PUT(req) {
   try {
-    const access = await requireAdmin();
-    if (!access.authorized) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: access.status });
-    }
-
     const body = await req.json();
     const { id, action } = body;
     if (!id || !action) {

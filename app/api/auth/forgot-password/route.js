@@ -71,7 +71,7 @@ export async function POST(req) {
         expiresAt,
       });
 
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL ;
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
       const resetLink = `${appUrl}/reset-password?token=${token}&id=${user._id}`;
 
       // send email if SMTP configured, otherwise log reset link to server console

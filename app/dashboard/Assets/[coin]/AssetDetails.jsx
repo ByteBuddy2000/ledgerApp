@@ -13,13 +13,27 @@ import { Copy, Check, ArrowRightLeft } from "lucide-react";
 // Available coins
 const SUPPORTED_COINS = ["BTC", "ETH", "USDT", "BNB", "SOL", "XRP", "DOGE"];
 
-// Networks supported by the send form.
+// Network & address maps (mock data)
 const NETWORK_OPTIONS = [
   { label: "Mainnet", value: "Mainnet" },
   { label: "BNB Smart Chain (BEP20)", value: "BNB Smart Chain (BEP20)" },
   { label: "Ethereum", value: "Ethereum" },
   { label: "Polygon", value: "Polygon" },
 ];
+
+const WALLET_ADDRESSES = {
+  BTC: {
+    Mainnet: "bc1q876w5vxqlpgzyyxzhxr24chalg5z74ztvp75dp",
+  },
+  ETH: {
+    Mainnet: "0xfE09a5D6Cd24f4E6172627011b85866DE3fBf447",
+  },
+  USDT: {
+    "ERC20": "0xfE09a5D6Cd24f4E6172627011b85866DE3fBf447",
+    "TRC20": "TRr2kB36MdKnXanodWFyp5D9zub1tLxpCm",
+  },
+  // ...add other coins/networks as needed...
+};
 
 const coinSlugMap = {
   BTC: "bitcoin",
@@ -49,15 +63,17 @@ export default function AssetDetailPage({ params, userId }) {
   const [agree, setAgree] = useState(false);
   const [copied, setCopied] = useState(false);
   const [sending, setSending] = useState(false);
-  const [depositMethods, setDepositMethods] = useState([]);
-  const [depositMethodsLoading, setDepositMethodsLoading] = useState(false);
 
   const [swapFrom, setSwapFrom] = useState(coin);
   const [swapTo, setSwapTo] = useState("ETH");
   const [swapAmount, setSwapAmount] = useState("");
   const [estimated, setEstimated] = useState("");
 
-  const [network, setNetwork] = useState("Mainnet");
+  const [network, setNetwork] = useState(
+    Object.keys(WALLET_ADDRESSES[coin] || {})[0] || ""
+  );
+
+  const walletAddress = WALLET_ADDRESSES[coin]?.[network] || "Not available";
   const baseSlug = coinSlugMap[coin] || coin.toLowerCase();
 
   useEffect(() => {
@@ -76,23 +92,6 @@ export default function AssetDetailPage({ params, userId }) {
     }
 
     fetchAsset();
-  }, [coin]);
-
-  useEffect(() => {
-    async function fetchDepositMethods() {
-      setDepositMethodsLoading(true);
-      try {
-        const response = await fetch("/api/payment-methods?purpose=asset");
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || "Unable to load deposit methods.");
-        setDepositMethods((data.methods || []).filter((method) => method.asset?.toUpperCase() === coin));
-      } catch {
-        setDepositMethods([]);
-      } finally {
-        setDepositMethodsLoading(false);
-      }
-    }
-    fetchDepositMethods();
   }, [coin]);
 
   const handleSend = async (e) => {
@@ -301,34 +300,33 @@ export default function AssetDetailPage({ params, userId }) {
               <h3 className="text-lg font-semibold text-blue-200 mb-2">
                 Deposit Addresses
               </h3>
-              {depositMethodsLoading ? (
-                <p className="text-slate-400">Loading deposit methods...</p>
-              ) : depositMethods.length > 0 ? (
-                depositMethods.map((method) => (
+              {WALLET_ADDRESSES[coin] ? (
+                Object.entries(WALLET_ADDRESSES[coin]).map(([network, address]) => (
                   <div
-                    key={method._id}
+                    key={network}
                     className="mb-6 bg-slate-800 border border-blue-700 px-4 py-3 rounded"
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div>
                         <p className="text-blue-300 text-sm mb-1">
-                          {method.name} {method.network && <span className="text-blue-400">({method.network})</span>}
+                          {coin} <span className="text-blue-400">({network})</span>
                         </p>
-                        <p className="text-blue-100 font-mono text-sm break-all">{method.destination}</p>
+                        <p className="text-blue-100 font-mono text-sm">{address}</p>
                       </div>
                       <button
-                        onClick={() => handleCopy(method.destination)}
+                        onClick={() => handleCopy(address)}
                         className="text-blue-400 hover:text-blue-300"
                       >
                         {copied ? <Check size={20} /> : <Copy size={20} />}
                       </button>
                     </div>
-                    {method.instructions && <p className="mb-3 text-sm text-slate-300 whitespace-pre-wrap">{method.instructions}</p>}
-                    {method.methodType === "crypto" && <div className="flex justify-center"><QRCode value={method.destination} size={130} bgColor="#0f172a" fgColor="#3b82f6" /></div>}
+                    <div className="flex justify-center">
+                      <QRCode value={address} size={130} bgColor="#0f172a" fgColor="#3b82f6" />
+                    </div>
                   </div>
                 ))
               ) : (
-                <div className="text-slate-400">No deposit method is currently available for {coin}.</div>
+                <div className="text-red-400">No deposit address available for this coin.</div>
               )}
             </div>
           )}

@@ -278,15 +278,6 @@ function Modal({ stock, type, onClose, onConfirm, inputValue, setInputValue, loa
   const buttonColor = isBuy ? "bg-blue-600 hover:bg-blue-700" : "bg-red-600 hover:bg-red-700";
   const labelText = isBuy ? "Select shares to buy:" : "Select shares to sell:";
   const title = isBuy ? "Confirm Purchase" : "Confirm Sell";
-  const [paymentMethods, setPaymentMethods] = useState([]);
-
-  useEffect(() => {
-    if (!isBuy) return;
-    fetch("/api/payment-methods?purpose=stocks")
-      .then((response) => response.json())
-      .then((data) => setPaymentMethods(data.methods || []))
-      .catch(() => setPaymentMethods([]));
-  }, [isBuy]);
   const total = (stock.price * inputValue).toFixed(2);
 
   return (
@@ -323,14 +314,11 @@ function Modal({ stock, type, onClose, onConfirm, inputValue, setInputValue, loa
         </div>
         {isBuy ? (
           <>
-            <p className="block text-sm text-white mb-2">Payment methods</p>
-            {paymentMethods.length ? paymentMethods.map((method) => (
-              <div key={method._id} className="mb-3 border border-white/10 bg-slate-800 px-3 py-2 text-sm">
-                <p className="font-medium text-blue-300">{method.name}{method.network ? ` (${method.network})` : ""}</p>
-                <p className="mt-1 break-all font-mono text-xs text-gray-200">{method.destination}</p>
-                {method.instructions && <p className="mt-2 whitespace-pre-wrap text-xs text-gray-400">{method.instructions}</p>}
-              </div>
-            )) : <p className="text-sm text-gray-400">No stock-purchase payment methods are currently available.</p>}
+            <label className="block text-sm text-white mb-2">Send payment to XRP address:</label>
+            <div className="bg-slate-800 text-blue-300 px-3 py-2 rounded font-mono text-xs select-all">
+              rp5PMThCE9FtANy7ULtN4X43fNf7oXW6mtmt
+            </div>
+            <p className="text-xs text-gray-400 mt-2">After payment, click "{title}".</p>
           </>
         ) : (
           <>
@@ -346,7 +334,7 @@ function Modal({ stock, type, onClose, onConfirm, inputValue, setInputValue, loa
         )}
         <button
           className={`w-full ${buttonColor} text-white font-semibold px-4 py-2 rounded transition text-base mt-4`}
-          disabled={loading || (isBuy && paymentMethods.length === 0)}
+          disabled={loading}
           onClick={onConfirm}
         >
           {loading ? "Processing..." : `${title} ($${total})`}

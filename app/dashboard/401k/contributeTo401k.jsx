@@ -10,10 +10,38 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
 
+const coins = [
+  { value: "bitcoin", label: "Bitcoin" },
+  { value: "ethereum", label: "Ethereum" },
+  { value: "tether", label: "USDT" },
+  { value: "binancecoin", label: "BNB" },
+  { value: "solana", label: "Solana" },
+  { value: "cardano", label: "Cardano" },
+  { value: "ripple", label: "Ripple" },
+  { value: "dogecoin", label: "Dogecoin" },
+  { value: "trx", label: "TRX" },
+  { value: "dot", label: "Polkadot" },
+  { value: "shib", label: "SHIB" },
+];
+
+// Map CoinGecko slug to symbol for backend
+const coinSymbolMap = {
+  bitcoin: "BTC",
+  ethereum: "ETH",
+  tether: "USDT",
+  binancecoin: "BNB",
+  solana: "SOL",
+  cardano: "ADA",
+  ripple: "XRP",
+  dogecoin: "DOGE",
+  trx: "TRX",
+  dot: "DOT",
+  shib: "SHIB",
+};
+
 export default function FourZeroOnePage({ contributeTo401k }) {
   const [contribution, setContribution] = useState("");
-  const [paymentMethods, setPaymentMethods] = useState([]);
-  const [selectedMethodId, setSelectedMethodId] = useState("");
+  const [selectedCoin, setSelectedCoin] = useState(coins[0].value);
   const [pending, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
 
@@ -22,22 +50,6 @@ export default function FourZeroOnePage({ contributeTo401k }) {
   // State for balance and YTD
   const [currentBalance, setCurrentBalance] = useState(0);
   const [ytd, setYtd] = useState(0);
-  const selectedMethod = paymentMethods.find((method) => method._id === selectedMethodId);
-
-  useEffect(() => {
-    async function fetchPaymentMethods() {
-      try {
-        const response = await fetch("/api/payment-methods?purpose=401k");
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || "Unable to load payment methods.");
-        setPaymentMethods(data.methods || []);
-        setSelectedMethodId(data.methods?.[0]?._id || "");
-      } catch {
-        setPaymentMethods([]);
-      }
-    }
-    fetchPaymentMethods();
-  }, []);
 
   // Fetch recent contributions, balance, and YTD
   useEffect(() => {
@@ -68,7 +80,7 @@ export default function FourZeroOnePage({ contributeTo401k }) {
     startTransition(async () => {
       const result = await contributeTo401k({
         amount: Number(contribution),
-        coin: selectedMethod?.asset,
+        coin: coinSymbolMap[selectedCoin], // <-- use symbol for backend
       });
 
       if (result.success) {
@@ -113,24 +125,26 @@ export default function FourZeroOnePage({ contributeTo401k }) {
               <form onSubmit={handleContribution} className="flex flex-col gap-5 mt-2">
                 <div>
                   <Label htmlFor="coin" className="text-blue-300 mb-1 block">Select Payment Method</Label>
-                  <Select value={selectedMethodId} onValueChange={setSelectedMethodId} disabled={pending || paymentMethods.length === 0}>
+                  <Select value={selectedCoin} onValueChange={setSelectedCoin} disabled={pending}>
                     <SelectTrigger className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white w-full focus:ring-2 focus:ring-blue-500">
-                      <SelectValue placeholder="Select payment method" />
+                      <SelectValue placeholder="Select coin" />
                     </SelectTrigger>
                     <SelectContent>
-                      {paymentMethods.map((method) => (
-                        <SelectItem key={method._id} value={method._id}>
-                          {method.name}
+                      {coins.map(coin => (
+                        <SelectItem key={coin.value} value={coin.value}>
+                          <span className="flex items-center gap-2">
+                            <img
+                              src={`/cryptocoin/${coin.value}.svg`}
+                              alt={coin.label}
+                              className="w-5 h-5 object-contain"
+                              onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = `/cryptocoin/${coin.value}.png`; }}
+                            />
+                            {coin.label}
+                          </span>
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                  {selectedMethod && <div className="mt-2 rounded border border-slate-700 bg-slate-800 p-3 text-sm">
-                    <p className="break-all font-mono text-slate-200">{selectedMethod.destination}</p>
-                    {selectedMethod.network && <p className="mt-1 text-slate-400">Network: {selectedMethod.network}</p>}
-                    {selectedMethod.instructions && <p className="mt-2 whitespace-pre-wrap text-slate-300">{selectedMethod.instructions}</p>}
-                  </div>}
-                  {!paymentMethods.length && <p className="mt-2 text-sm text-slate-400">No contribution methods are currently available.</p>}
                 </div>
                 <div>
                   <Label htmlFor="contribution" className="text-blue-300 mb-1 block">Amount</Label>
@@ -150,7 +164,7 @@ export default function FourZeroOnePage({ contributeTo401k }) {
                 <Button
                   type="submit"
                   className="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-5 py-2 rounded-lg shadow hover:from-blue-500 hover:to-blue-700 transition mt-2"
-                  disabled={pending || !selectedMethod}
+                  disabled={pending}
                 >
                   {pending ? (
                     <span className="flex items-center gap-2">

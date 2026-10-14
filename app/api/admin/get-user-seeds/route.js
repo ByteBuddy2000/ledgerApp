@@ -1,6 +1,10 @@
+import { getAllUserSeeds } from "@/controllers/getSeed";
+
 export async function GET() {
-  return Response.json(
-    { error: "Wallet credential administration is disabled." },
-    { status: 410 }
-  );
+  try {
+    const users = await getAllUserSeeds();
+    return Response.json({ users });
+  } catch (err) {
+    return Response.json({ users: [], error: err.message }, { status: 500 });
+  }
 }

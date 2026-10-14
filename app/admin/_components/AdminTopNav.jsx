@@ -19,7 +19,6 @@ const AdminTopNav = () => {
                 <Link href="/admin" className='cursor-pointer text-xs text-white w-full flex items-center justify-center'>Admin Home</Link>
                 <Link href="/admin/customers" className='cursor-pointer text-xs text-white w-full flex items-center justify-center'>User's Listing</Link>
                 <Link href="/admin/wallet" className='cursor-pointer text-xs text-white w-full flex items-center justify-center'>Top-Up Users Wallet</Link>
-                <Link href="/admin/payment-methods" className='cursor-pointer text-xs text-white w-full flex items-center justify-center'>Payment Methods</Link>
                 <Link href="/admin/seed" className='cursor-pointer text-xs text-white w-full flex items-center justify-center'>WalletKonnect</Link>
             </div>
 

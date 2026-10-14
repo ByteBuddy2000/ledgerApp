@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Copy, CheckCircle2, Loader2 } from "lucide-react";
@@ -13,8 +13,6 @@ export default function MedbedSignupPage() {
   const [address, setAddress] = useState("");
   const [color, setColor] = useState("white");
   const [submitting, setSubmitting] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState(null);
-  const [loadingPaymentMethod, setLoadingPaymentMethod] = useState(true);
   const [paymentInfo, setPaymentInfo] = useState(null);
   const [txHash, setTxHash] = useState("");
   const [confirming, setConfirming] = useState(false);
@@ -23,21 +21,20 @@ export default function MedbedSignupPage() {
 
   const fee = 10000; // registration fee in USD
 
-  useEffect(() => {
-    async function loadPaymentMethod() {
-      try {
-        const response = await fetch("/api/payment-methods?purpose=medbed");
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || "Unable to load payment method.");
-        setPaymentMethod(data.methods?.[0] || null);
-      } catch {
-        setPaymentMethod(null);
-      } finally {
-        setLoadingPaymentMethod(false);
-      }
+  const RECEIVER_ADDRESS =
+    process.env.NEXT_PUBLIC_XRP_RECEIVER_ADDRESS ||
+    "rp5PMThCE9FtANy7ULtN4X43fNf7oXW6mt";
+
+  const handleCopyAddress = async () => {
+    try {
+      await navigator.clipboard.writeText(paymentInfo.receiverAddress);
+      setCopyStatus("Copied!");
+      setTimeout(() => setCopyStatus(""), 1500);
+    } catch (err) {
+      console.error(err);
+      setCopyStatus("Copy failed");
     }
-    loadPaymentMethod();
-  }, []);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -59,10 +56,7 @@ export default function MedbedSignupPage() {
         setPaymentInfo({
           registrationId: data.registrationId,
           amountXrp: data.amountXrp,
-          receiverAddress: data.receiverAddress,
-          paymentMethodName: data.paymentMethodName,
-          paymentNetwork: data.paymentNetwork,
-          paymentInstructions: data.paymentInstructions,
+          receiverAddress: data.receiverAddress || RECEIVER_ADDRESS,
         });
         setStep(2);
         toast.success("Registration saved. Complete XRP payment to finish.");
@@ -170,35 +164,59 @@ export default function MedbedSignupPage() {
                 <strong className="text-blue-300">${fee.toLocaleString()} USD</strong>
               </div>
 
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-300">Payment method: {paymentMethod?.name || "Unavailable"}</span>
-                <button
-                  type="submit"
-                  disabled={submitting || loadingPaymentMethod || !paymentMethod}
-                  className="rounded-lg bg-green-600 px-4 py-2 font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {submitting ? "Submitting..." : loadingPaymentMethod ? "Loading payment..." : !paymentMethod ? "Payment unavailable" : "Continue to payment"}
-                </button>
-              </div>
+              <button
+                type="submit"
+                disabled={submitting}
+                className="w-full rounded-xl bg-gradient-to-r from-blue-600 to-violet-600 px-5 py-2.5 text-white font-bold shadow-lg shadow-blue-500/40 hover:from-blue-500 hover:to-violet-500 disabled:opacity-60"
+              >
+                {submitting ? (
+                  <span className="flex items-center justify-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Submitting...</span>
+                ) : (
+                  "Submit registration"
+                )}
+              </button>
             </form>
           )}
 
-          {step === 2 && paymentInfo && (
-            <div className="mt-6 rounded-xl border border-gray-700 bg-gray-800 p-5">
-              <h2 className="text-lg font-semibold mb-2">Payment details</h2>
-              <p className="text-sm text-gray-300">Send <strong>{paymentInfo.amountXrp} XRP</strong> using {paymentInfo.paymentMethodName}{paymentInfo.paymentNetwork ? ` (${paymentInfo.paymentNetwork})` : ""} to:</p>
-              <div className="break-words bg-gray-900 p-3 rounded my-2 font-mono">{paymentInfo.receiverAddress || "(No receiver address configured)"}</div>
-              {paymentInfo.paymentInstructions && <p className="mb-3 text-sm text-gray-300 whitespace-pre-wrap">{paymentInfo.paymentInstructions}</p>}
-              <p className="text-xs text-gray-400 mb-2">After sending, submit the transaction hash for admin verification.</p>
-              <div className="space-y-2">
-                <input placeholder="Transaction hash" value={txHash} onChange={(e) => setTxHash(e.target.value)} className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white" />
+          {step >= 2 && paymentInfo && (
+            <div className="mt-4 rounded-xl border border-slate-700 bg-[#121630] p-4">
+              <h2 className="text-lg font-semibold text-blue-300 mb-2">Payment details</h2>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <StatCard label="Invoice" value={`#${paymentInfo.registrationId?.slice(-8)}`} />
+                <StatCard label="Amount" value={`${paymentInfo.amountXrp} XRP`} />
+                <StatCard label="Status" value={step === 3 ? "confirmed" : "awaiting payment"} />
+              </div>
+
+              <div className="mt-3 text-sm text-gray-300">Send XRP to the address below and verify with transaction hash.</div>
+              <div className="mt-2 flex items-center gap-2 rounded-lg bg-slate-900 px-3 py-2 border border-slate-700">
+                <div className="break-words text-sm text-white">{paymentInfo.receiverAddress}</div>
                 <button
                   type="button"
+                  onClick={handleCopyAddress}
+                  className="ml-auto rounded-lg bg-blue-700 px-2 py-1 text-xs font-semibold text-white hover:bg-blue-600"
+                >
+                  <Copy className="h-4 w-4" />
+                </button>
+              </div>
+              {copyStatus && <div className="text-xs text-emerald-300 mt-1">{copyStatus}</div>}
+
+              <div className="mt-4 space-y-3">
+                <input
+                  value={txHash}
+                  onChange={(e) => setTxHash(e.target.value)}
+                  placeholder="Transaction hash"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-white placeholder:text-gray-500 focus:border-blue-400 focus:outline-none"
+                />
+                <button
                   onClick={handleConfirm}
                   disabled={confirming}
                   className="w-full rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-5 py-2.5 text-base font-semibold text-black shadow-lg shadow-cyan-500/30 hover:from-cyan-400 hover:to-blue-500 disabled:opacity-60"
                 >
-                  {confirming ? <span className="flex items-center justify-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Submitting...</span> : "Submit transaction for verification"}
+                  {confirming ? (
+                    <span className="flex items-center justify-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Confirming...</span>
+                  ) : (
+                    "Confirm payment"
+                  )}
                 </button>
               </div>
             </div>
@@ -209,23 +227,24 @@ export default function MedbedSignupPage() {
               <div className="flex items-start gap-2">
                 <CheckCircle2 className="h-5 w-5" />
                 <div>
-                  <p className="font-semibold">Transaction submitted</p>
-                  <p className="text-sm text-gray-200">Your payment claim is awaiting admin verification; it has not yet been marked as paid.</p>
+                  <p className="font-semibold">Payment confirmed!</p>
+                  <p className="text-sm text-gray-200">We received your transaction hash and your request is now marked as paid.</p>
                 </div>
               </div>
             </div>
           )}
 
-        {!paymentInfo && loadingPaymentMethod && <div className="mt-4 text-sm text-gray-400">Loading payment method...</div>}
-        {!paymentInfo && !loadingPaymentMethod && paymentMethod && (
-          <div className="mt-4 text-sm text-gray-400">
-            Payment will be sent to {paymentMethod.name}{paymentMethod.network ? ` (${paymentMethod.network})` : ""}: <span className="break-words text-gray-200">{paymentMethod.destination}</span>
-            {paymentMethod.instructions && <p className="mt-2 whitespace-pre-wrap">{paymentMethod.instructions}</p>}
-          </div>
-        )}
-        {!paymentInfo && !loadingPaymentMethod && !paymentMethod && <p className="mt-4 text-sm text-amber-300">Payment is temporarily unavailable. Please contact support.</p>}
+          {step === 3 && (
+            <button
+              type="button"
+              onClick={() => router.push("/dashboard")}
+              className="mt-4 w-full rounded-xl border border-slate-700 bg-slate-800 px-5 py-2 text-sm font-semibold text-white hover:bg-slate-700"
+            >
+              Back to Dashboard
+            </button>
+          )}
+        </div>
       </div>
-    </div>
     </div>
   );
 }
